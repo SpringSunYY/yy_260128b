@@ -1,26 +1,26 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.CategoryMapper;
 import com.lz.manage.model.domain.Category;
-import com.lz.manage.service.ICategoryService;
 import com.lz.manage.model.dto.category.CategoryQuery;
 import com.lz.manage.model.vo.category.CategoryVo;
+import com.lz.manage.service.ICategoryService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 分类标签Service业务层处理
@@ -29,13 +29,16 @@ import com.lz.manage.model.vo.category.CategoryVo;
  * @date 2026-02-09
  */
 @Service
-public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements ICategoryService
-{
+public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements ICategoryService {
 
     @Resource
     private CategoryMapper categoryMapper;
 
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询分类标签
      *
@@ -43,8 +46,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 分类标签
      */
     @Override
-    public Category selectCategoryById(Long id)
-    {
+    public Category selectCategoryById(Long id) {
         return categoryMapper.selectCategoryById(id);
     }
 
@@ -55,9 +57,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 分类标签
      */
     @Override
-    public List<Category> selectCategoryList(Category category)
-    {
-        return categoryMapper.selectCategoryList(category);
+    public List<Category> selectCategoryList(Category category) {
+        List<Category> categories = categoryMapper.selectCategoryList(category);
+        for (Category info : categories) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+        }
+        return categories;
     }
 
     /**
@@ -67,8 +75,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 结果
      */
     @Override
-    public int insertCategory(Category category)
-    {
+    public int insertCategory(Category category) {
+        //查询父级
+        Category parent = categoryMapper.selectCategoryById(category.getParentId());
+        if (StringUtils.isNotNull(parent)) {
+            category.setAncestors(parent.getAncestors() + "," + category.getParentId());
+        }else {
+            category.setAncestors("0");
+        }
+        category.setUserId(SecurityUtils.getUserId());
         category.setCreateTime(DateUtils.getNowDate());
         return categoryMapper.insertCategory(category);
     }
@@ -80,10 +95,38 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 结果
      */
     @Override
-    public int updateCategory(Category category)
-    {
+    public int updateCategory(Category category) {
+        Category categoryDb = categoryMapper.selectCategoryById(category.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(categoryDb), "分类标签不存在");
+        //判断是否父级编号改变
+        if (category.getParentId().longValue() != categoryDb.getParentId().longValue()){
+            Category oldParent = categoryMapper.selectCategoryById(category.getParentId());
+            Category newParent = categoryMapper.selectCategoryById(category.getParentId());
+            String newAncestor = "";
+            String oldAncestor = "";
+            if (StringUtils.isNotNull(oldParent)) {
+                oldAncestor = oldParent.getAncestors();
+            }
+            if (StringUtils.isNotNull(newParent)) {
+                newAncestor = newParent.getAncestors()+","+category.getId();
+            }
+            category.setAncestors(newAncestor);
+            updateCategoryChildren(category.getId(), newAncestor, oldAncestor);
+        }
+        category.setUpdateBy(SecurityUtils.getUsername());
         category.setUpdateTime(DateUtils.getNowDate());
         return categoryMapper.updateCategory(category);
+    }
+
+    private void updateCategoryChildren(Long id, String newAncestor, String oldAncestor) {
+        //查询所有子部门
+        List<Category> children = categoryMapper.selectCategoryChildrenById(id);
+        for (Category child : children) {
+            child.setAncestors(child.getAncestors().replaceFirst(oldAncestor, newAncestor));
+        }
+        if (!children.isEmpty()) {
+            categoryMapper.insertOrUpdate(children);
+        }
     }
 
     /**
@@ -93,8 +136,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 结果
      */
     @Override
-    public int deleteCategoryByIds(Long[] ids)
-    {
+    public int deleteCategoryByIds(Long[] ids) {
         return categoryMapper.deleteCategoryByIds(ids);
     }
 
@@ -105,13 +147,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
      * @return 结果
      */
     @Override
-    public int deleteCategoryById(Long id)
-    {
+    public int deleteCategoryById(Long id) {
         return categoryMapper.deleteCategoryById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<Category> getQueryWrapper(CategoryQuery categoryQuery){
+    public QueryWrapper<Category> getQueryWrapper(CategoryQuery categoryQuery) {
         QueryWrapper<Category> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = categoryQuery.getParams();
@@ -119,10 +161,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
             params = new HashMap<>();
         }
         Long id = categoryQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String name = categoryQuery.getName();
-        queryWrapper.like(StringUtils.isNotEmpty(name) ,"name",name);
+        queryWrapper.like(StringUtils.isNotEmpty(name), "name", name);
 
         return queryWrapper;
     }

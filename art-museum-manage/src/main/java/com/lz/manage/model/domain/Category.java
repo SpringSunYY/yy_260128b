@@ -1,18 +1,18 @@
 package com.lz.manage.model.domain;
 
-import java.io.Serializable;
-import java.util.Map;
-import java.util.Date;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-import com.lz.common.annotation.Excel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.lz.common.annotation.Excel;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
+
 /**
  * 分类标签对象 tb_category
  *
@@ -21,50 +21,72 @@ import com.fasterxml.jackson.annotation.JsonInclude;
  */
 @TableName("tb_category")
 @Data
-public class Category implements Serializable
-{
+public class Category implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     @Excel(name = "编号")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
-    /** 名称 */
+    /**
+     * 名称
+     */
     @Excel(name = "名称")
     private String name;
 
-    /** 父级编号 */
+    /**
+     * 父级编号
+     */
     @Excel(name = "父级编号")
     private Long parentId;
 
-    /** 祖级列表 */
+    /**
+     * 祖级列表
+     */
     @Excel(name = "祖级列表")
     private String ancestors;
 
-    /** 备注 */
+    /**
+     * 备注
+     */
     @Excel(name = "备注")
     private String remark;
 
-    /** 创建人 */
-    @Excel(name = "创建人")
+    /**
+     * 创建人
+     */
+    @Excel(name = "创建人", type = Excel.Type.IMPORT)
     private Long userId;
+    @Excel(name = "创建人", type = Excel.Type.EXPORT)
+    @TableField(exist = false)
+    private String userName;
 
-    /** 更新人 */
+    /**
+     * 更新人
+     */
     @Excel(name = "更新人")
     private String updateBy;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date createTime;
 
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Excel(name = "更新时间", width = 30, dateFormat = "yyyy-MM-dd")
     private Date updateTime;
 
-    /** 请求参数 */
+    /**
+     * 请求参数
+     */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @TableField(exist = false)
     private Map<String, Object> params;
