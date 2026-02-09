@@ -6,10 +6,13 @@ import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.CollectionInfoMapper;
+import com.lz.manage.model.domain.Category;
 import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.dto.collectionInfo.CollectionInfoQuery;
 import com.lz.manage.model.vo.collectionInfo.CollectionInfoVo;
+import com.lz.manage.service.ICategoryService;
 import com.lz.manage.service.ICollectionInfoService;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
@@ -32,6 +35,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
 
     @Resource
     private ISysUserService sysUserService;
+
+    @Resource
+    private ICategoryService categoryService;
 
     //region mybatis代码
 
@@ -60,6 +66,10 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
             if (StringUtils.isNotNull(sysUser)) {
                 info.setUserName(sysUser.getUserName());
             }
+            Category category = categoryService.selectCategoryById(info.getCategoryId());
+            if (StringUtils.isNotNull(category)) {
+                info.setCategoryName(category.getName());
+            }
         }
         return collectionInfos;
     }
@@ -72,6 +82,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
      */
     @Override
     public int insertCollectionInfo(CollectionInfo collectionInfo) {
+        //查询分类是否存在
+        Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
+        ThrowUtils.throwIf(StringUtils.isNull(category), "分类不存在");
         collectionInfo.setCollectNumber(0L);
         collectionInfo.setUserId(SecurityUtils.getUserId());
         collectionInfo.setCreateTime(DateUtils.getNowDate());
@@ -86,6 +99,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
      */
     @Override
     public int updateCollectionInfo(CollectionInfo collectionInfo) {
+        //查询分类是否存在
+        Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
+        ThrowUtils.throwIf(StringUtils.isNull(category), "分类不存在");
         collectionInfo.setUpdateBy(SecurityUtils.getUsername());
         collectionInfo.setUpdateTime(DateUtils.getNowDate());
         return collectionInfoMapper.updateCollectionInfo(collectionInfo);

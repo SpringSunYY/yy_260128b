@@ -20,6 +20,11 @@ public class CollectionInfoEdit implements Serializable
     /** 编号 */
     private Long id;
 
+        /**
+     * 分类
+     */
+    private Long categoryId;
+
     /** 名称 */
     private String name;
 

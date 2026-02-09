@@ -23,6 +23,13 @@ public class CollectionInfoVo implements Serializable {
      */
     private Long id;
 
+
+    /**
+     * 分类
+     */
+    private Long categoryId;
+    private String categoryName;
+
     /**
      * 名称
      */

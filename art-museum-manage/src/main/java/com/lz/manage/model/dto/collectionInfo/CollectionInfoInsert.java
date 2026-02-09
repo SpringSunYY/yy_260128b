@@ -17,6 +17,11 @@ public class CollectionInfoInsert implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
+        /**
+     * 分类
+     */
+    private Long categoryId;
+
     /** 名称 */
     private String name;
 
