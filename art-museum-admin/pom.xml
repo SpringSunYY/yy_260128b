@@ -60,6 +60,10 @@
             <groupId>com.lz</groupId>
             <artifactId>art-museum-generator</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>art-museum-manage</artifactId>
+        </dependency>
 
     </dependencies>
 

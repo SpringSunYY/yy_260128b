@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.CollectMapper">
+    
+    <resultMap type="Collect" id="CollectResult">
+        <result property="id"    column="id"    />
+        <result property="type"    column="type"    />
+        <result property="targetId"    column="target_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectCollectVo">
+        select id, type, target_id, user_id, create_time from tb_collect
+    </sql>
+
+    <select id="selectCollectList" parameterType="Collect" resultMap="CollectResult">
+        <include refid="selectCollectVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectCollectById" parameterType="Long" resultMap="CollectResult">
+        <include refid="selectCollectVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertCollect" parameterType="Collect" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_collect
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="type != null and type != ''">type,</if>
+            <if test="targetId != null">target_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="type != null and type != ''">#{type},</if>
+            <if test="targetId != null">#{targetId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCollect" parameterType="Collect">
+        update tb_collect
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="type != null and type != ''">type = #{type},</if>
+            <if test="targetId != null">target_id = #{targetId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteCollectById" parameterType="Long">
+        delete from tb_collect where id = #{id}
+    </delete>
+
+    <delete id="deleteCollectByIds" parameterType="String">
+        delete from tb_collect where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -233,6 +233,11 @@
                 <artifactId>art-museum-common</artifactId>
                 <version>${art-museum.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.lz</groupId>
+                <artifactId>art-museum-manage</artifactId>
+                <version>${art-museum.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -244,6 +249,7 @@
         <module>art-museum-quartz</module>
         <module>art-museum-generator</module>
         <module>art-museum-common</module>
+        <module>art-museum-manage</module>
     </modules>
     <packaging>pom</packaging>
 

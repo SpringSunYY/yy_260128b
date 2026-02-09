@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lz.manage.mapper.UserBalanceMapper">
+    
+    <resultMap type="UserBalance" id="UserBalanceResult">
+        <result property="id"    column="id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="balance"    column="balance"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="createTime"    column="create_time"    />
+    </resultMap>
+
+    <sql id="selectUserBalanceVo">
+        select id, user_id, balance, update_time, create_time from tb_user_balance
+    </sql>
+
+    <select id="selectUserBalanceList" parameterType="UserBalance" resultMap="UserBalanceResult">
+        <include refid="selectUserBalanceVo"/>
+        <where>  
+            <if test="id != null "> and id = #{id}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+        </where>
+    </select>
+    
+    <select id="selectUserBalanceById" parameterType="Long" resultMap="UserBalanceResult">
+        <include refid="selectUserBalanceVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertUserBalance" parameterType="UserBalance" useGeneratedKeys="true" keyProperty="id">
+        insert into tb_user_balance
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="balance != null">balance,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="createTime != null">create_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="balance != null">#{balance},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateUserBalance" parameterType="UserBalance">
+        update tb_user_balance
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserBalanceById" parameterType="Long">
+        delete from tb_user_balance where id = #{id}
+    </delete>
+
+    <delete id="deleteUserBalanceByIds" parameterType="String">
+        delete from tb_user_balance where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
