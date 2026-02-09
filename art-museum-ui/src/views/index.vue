@@ -33,9 +33,9 @@
       <el-row :gutter="20">
         <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in collectionList" :key="item.id" class="mb20">
           <el-card :body-style="{ padding: '0px' }" shadow="hover" class="collection-card">
-            <div class="card-image-container">
-              <image-preview :src="item.imageSrc" :width="'100%'" :height="250"/>
-            </div>
+              <div class="card-image-container">
+                <image-preview :src="item.imageSrc" :width="'100%'" :height="250"/>
+              </div>
             <div class="card-content">
               <div class="card-header">
                 <span class="card-title">{{ item.name }}</span>
@@ -58,7 +58,10 @@
                   <span class="category-tag">{{ item.categoryName }}</span>
                 </div>
                 <div class="footer-right">
-                  <dict-tag :options="dict.type.collection_sort_type" :value="item.sortType"/>
+                  <div class="action-group">
+                    <dict-tag :options="dict.type.collection_sort_type" :value="item.sortType"/>
+                    <el-button type="primary" size="mini" icon="el-icon-view" @click.stop="handleViewDetail(item.id)">详情</el-button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -81,7 +84,7 @@ import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {
-  name: "Home",
+  name: "Index",
   components: {ImagePreview, DictTag, Treeselect},
   dicts: ['collection_status', 'collection_sort_type'],
   data() {
@@ -154,6 +157,14 @@ export default {
       this.queryParams.author = null;
       this.queryParams.era = null;
       this.handleSearch();
+    },
+    /** 查看详情 */
+    handleViewDetail(id) {
+      const route = this.$router.resolve({
+        name: 'CollectionInfoDetail',
+        query: { id: id }
+      });
+      window.open(route.href, '_blank');
     }
   }
 };
@@ -199,6 +210,7 @@ export default {
   transition: all 0.3s ease;
   height: 100%;
   background: #fff;
+  cursor: pointer;
 
   &:hover {
     transform: translateY(-5px);
@@ -217,6 +229,7 @@ export default {
   height: 250px;
   overflow: hidden;
   background-color: #f5f7fa;
+  position: relative;
 
   img, .image-preview {
     width: 100%;
@@ -230,6 +243,25 @@ export default {
     img, .image-preview {
       transform: scale(1.05);
     }
+  }
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
   }
 }
 
@@ -300,8 +332,18 @@ export default {
   }
 
   .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
     :deep(.el-tag) {
       font-size: 12px;
+    }
+
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
 }
