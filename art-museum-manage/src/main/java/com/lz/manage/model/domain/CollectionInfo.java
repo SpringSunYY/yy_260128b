@@ -83,8 +83,11 @@ public class CollectionInfo implements Serializable
     private String remark;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人",type = Excel.Type.IMPORT)
     private Long userId;
+    @Excel(name = "创建人",type = Excel.Type.EXPORT)
+    @TableField(exist = false)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")
