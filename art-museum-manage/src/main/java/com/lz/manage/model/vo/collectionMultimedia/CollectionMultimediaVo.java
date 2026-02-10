@@ -1,14 +1,13 @@
 package com.lz.manage.model.vo.collectionMultimedia;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-import com.lz.common.annotation.Excel;
-import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lz.manage.model.domain.CollectionMultimedia;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * 藏品多媒体Vo对象 tb_collection_multimedia
  *
@@ -16,50 +15,81 @@ import com.lz.manage.model.domain.CollectionMultimedia;
  * @date 2026-02-09
  */
 @Data
-public class CollectionMultimediaVo implements Serializable
-{
+public class CollectionMultimediaVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     private Long id;
 
-    /** 藏品 */
+    /**
+     * 藏品
+     */
     private Long collectionId;
+    /**
+     * 藏品名称
+     */
+    private String collectionName;
 
-    /** 名称 */
+    /**
+     * 名称
+     */
     private String name;
 
-    /** 状态 */
+    /**
+     * 状态
+     */
     private String status;
 
-    /** 类型 */
+    /**
+     * 类型
+     */
     private String type;
 
-    /** 排序 */
+    /**
+     * 排序
+     */
     private Long sortNum;
 
-    /** 文件 */
+    /**
+     * 文件
+     */
     private String fileUrl;
 
-    /** 备注 */
+    /**
+     * 备注
+     */
     private String remark;
 
-    /** 创建人 */
+    /**
+     * 创建人
+     */
     private Long userId;
+    /**
+     * 创建人名称
+     */
+    private String userName;
 
-    /** 更新人 */
+    /**
+     * 更新人
+     */
     private String updateBy;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createTime;
 
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date updateTime;
 
 
-     /**
+    /**
      * 对象转封装类
      *
      * @param collectionMultimedia CollectionMultimedia实体对象

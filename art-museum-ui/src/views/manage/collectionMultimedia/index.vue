@@ -10,12 +10,21 @@
         />
       </el-form-item>
       <el-form-item label="藏品" prop="collectionId">
-        <el-input
+        <el-select
           v-model="queryParams.collectionId"
-          placeholder="请输入藏品"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+          filterable
+          remote
+          reserve-keyword
+          placeholder="请输入藏品名称"
+          :remote-method="remoteGetCollectionInfoList"
+          :loading="collectionInfoLoading">
+          <el-option
+            v-for="item in collectionInfoList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="名称" prop="name">
         <el-input
@@ -71,7 +80,8 @@
           size="mini"
           @click="handleAdd"
           v-hasPermi="['manage:collectionMultimedia:add']"
-        >新增</el-button>
+        >新增
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -82,7 +92,8 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['manage:collectionMultimedia:edit']"
-        >修改</el-button>
+        >修改
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -93,7 +104,8 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['manage:collectionMultimedia:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -103,45 +115,48 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['manage:collectionMultimedia:export']"
-        >导出</el-button>
+        >导出
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="collectionMultimediaList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id" />
-        <el-table-column label="藏品" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible" prop="collectionId" />
-        <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="name" />
-        <el-table-column label="状态" align="center" v-if="columns[3].visible" prop="status">
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
+      <el-table-column label="藏品" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+                       prop="collectionName"/>
+      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="name"/>
+      <el-table-column label="状态" align="center" v-if="columns[3].visible" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.collection_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-        <el-table-column label="类型" align="center" v-if="columns[4].visible" prop="type">
+      <el-table-column label="类型" align="center" v-if="columns[4].visible" prop="type">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.collection_multimedia_type" :value="scope.row.type"/>
         </template>
       </el-table-column>
-        <el-table-column label="排序" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible" prop="sortNum" />
-        <el-table-column label="文件" align="center" v-if="columns[6].visible" prop="fileUrl" width="100">
+      <el-table-column label="排序" :show-overflow-tooltip="true" align="center" v-if="columns[5].visible"
+                       prop="sortNum"/>
+      <el-table-column label="文件" align="center" v-if="columns[6].visible" prop="fileUrl" width="100">
         <template slot-scope="scope">
           <div v-if="scope.row.fileUrl">
             <el-tooltip placement="top" effect="light">
               <div slot="content">
-                  <div v-for="(file,index) in scope.row.fileUrl.split(',')"
-                       :key="index"
-                       style="text-align: left;padding: 5px;">
-                    <el-link
-                       :download="getFileName(file)"
-                       :href="getFilePath(file)"
-                       :underline="false"
-                       target="_blank"
-                       style="font-size: 14px"
-                    >
+                <div v-for="(file,index) in scope.row.fileUrl.split(',')"
+                     :key="index"
+                     style="text-align: left;padding: 5px;">
+                  <el-link
+                    :download="getFileName(file)"
+                    :href="getFilePath(file)"
+                    :underline="false"
+                    target="_blank"
+                    style="font-size: 14px"
+                  >
                     <span style="cursor: pointer;"> {{ getFileName(file) }} </span>
                   </el-link>
-                  </div>
+                </div>
               </div>
               <span style="cursor: pointer; color: #409EFF;">查看文件</span>
             </el-tooltip>
@@ -151,20 +166,23 @@
           </div>
         </template>
       </el-table-column>
-        <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible" prop="remark" />
-        <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible" prop="userId" />
-        <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible" prop="updateBy" />
-        <el-table-column label="创建时间" align="center" v-if="columns[10].visible" prop="createTime" width="180">
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible"
+                       prop="remark"/>
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
+                       prop="userName"/>
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
+                       prop="updateBy"/>
+      <el-table-column label="创建时间" align="center" v-if="columns[10].visible" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="更新时间" align="center" v-if="columns[11].visible" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" v-if="columns[11].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -172,14 +190,16 @@
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:collectionMultimedia:edit']"
-          >修改</el-button>
+          >修改
+          </el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['manage:collectionMultimedia:remove']"
-          >删除</el-button>
+          >删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -196,10 +216,24 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="藏品" prop="collectionId">
-          <el-input v-model="form.collectionId" placeholder="请输入藏品" />
+          <el-select
+            v-model="form.collectionId"
+            filterable
+            remote
+            reserve-keyword
+            placeholder="请输入藏品名称"
+            :remote-method="remoteGetCollectionInfoList"
+            :loading="collectionInfoLoading">
+            <el-option
+              v-for="item in collectionInfoList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id">
+            </el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
+          <el-input v-model="form.name" placeholder="请输入名称"/>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
@@ -207,7 +241,8 @@
               v-for="dict in dict.type.collection_status"
               :key="dict.value"
               :label="dict.value"
-            >{{dict.label}}</el-radio>
+            >{{ dict.label }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="类型" prop="type">
@@ -221,13 +256,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="排序" prop="sortNum">
-          <el-input v-model="form.sortNum" placeholder="请输入排序" />
+          <el-input-number :min="0" v-model="form.sortNum" placeholder="请输入排序"/>
         </el-form-item>
         <el-form-item label="文件" prop="fileUrl">
-          <file-upload v-model="form.fileUrl"/>
+          <file-upload :file-size="500" v-model="form.fileUrl" :limit="1"
+                       :file-type="['png', 'jpg', 'jpeg','mp3', 'mp4']"/>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -239,28 +275,45 @@
 </template>
 
 <script>
-import { listCollectionMultimedia, getCollectionMultimedia, delCollectionMultimedia, addCollectionMultimedia, updateCollectionMultimedia } from "@/api/manage/collectionMultimedia";
+import {
+  addCollectionMultimedia,
+  delCollectionMultimedia,
+  getCollectionMultimedia,
+  listCollectionMultimedia,
+  updateCollectionMultimedia
+} from "@/api/manage/collectionMultimedia";
+import {listCollectionInfo} from "@/api/manage/collectionInfo";
 
 export default {
   name: "CollectionMultimedia",
   dicts: ['collection_multimedia_type', 'collection_status'],
   data() {
     return {
+      collectionInfoList: [],
+      collectionInfoLoading: false,
+      collectionInfoQuery: {
+        pageNum: 1,
+        pageSize: 30,
+        name: null,
+        status: null,
+        createTime: null,
+        updateTime: null,
+      },
       //表格展示列
       columns: [
-        { key: 0, label: '编号', visible: true },
-          { key: 1, label: '藏品', visible: true },
-          { key: 2, label: '名称', visible: true },
-          { key: 3, label: '状态', visible: true },
-          { key: 4, label: '类型', visible: true },
-          { key: 5, label: '排序', visible: true },
-          { key: 6, label: '文件', visible: true },
-          { key: 7, label: '备注', visible: true },
-          { key: 8, label: '创建人', visible: true },
-          { key: 9, label: '更新人', visible: true },
-          { key: 10, label: '创建时间', visible: true },
-          { key: 11, label: '更新时间', visible: true },
-        ],
+        {key: 0, label: '编号', visible: true},
+        {key: 1, label: '藏品', visible: true},
+        {key: 2, label: '名称', visible: true},
+        {key: 3, label: '状态', visible: true},
+        {key: 4, label: '类型', visible: true},
+        {key: 5, label: '排序', visible: true},
+        {key: 6, label: '文件', visible: true},
+        {key: 7, label: '备注', visible: false},
+        {key: 8, label: '创建人', visible: true},
+        {key: 9, label: '更新人', visible: false},
+        {key: 10, label: '创建时间', visible: true},
+        {key: 11, label: '更新时间', visible: false},
+      ],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -300,36 +353,48 @@ export default {
       // 表单校验
       rules: {
         collectionId: [
-          { required: true, message: "藏品不能为空", trigger: "blur" }
+          {required: true, message: "藏品不能为空", trigger: "blur"}
         ],
         name: [
-          { required: true, message: "名称不能为空", trigger: "blur" }
+          {required: true, message: "名称不能为空", trigger: "blur"}
         ],
         status: [
-          { required: true, message: "状态不能为空", trigger: "change" }
+          {required: true, message: "状态不能为空", trigger: "change"}
         ],
         type: [
-          { required: true, message: "类型不能为空", trigger: "change" }
+          {required: true, message: "类型不能为空", trigger: "change"}
         ],
         sortNum: [
-          { required: true, message: "排序不能为空", trigger: "blur" }
+          {required: true, message: "排序不能为空", trigger: "blur"}
         ],
         fileUrl: [
-          { required: true, message: "文件不能为空", trigger: "blur" }
+          {required: true, message: "文件不能为空", trigger: "blur"}
         ],
         userId: [
-          { required: true, message: "创建人不能为空", trigger: "blur" }
+          {required: true, message: "创建人不能为空", trigger: "blur"}
         ],
         createTime: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
+          {required: true, message: "创建时间不能为空", trigger: "blur"}
         ],
       }
     };
   },
   created() {
     this.getList();
+    this.getCollectionInfoList()
   },
   methods: {
+    remoteGetCollectionInfoList(keyword) {
+      this.collectionInfoQuery.name = keyword;
+      this.getCollectionInfoList()
+    },
+    getCollectionInfoList() {
+      this.collectionInfoLoading = true;
+      listCollectionInfo(this.collectionInfoQuery).then(response => {
+        this.collectionInfoList = response.rows;
+        this.collectionInfoLoading = false;
+      });
+    },
     /** 查询藏品多媒体列表 */
     getList() {
       this.loading = true;
@@ -381,7 +446,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
@@ -423,12 +488,13 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除藏品多媒体编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除藏品多媒体编号为"' + ids + '"的数据项？').then(function () {
         return delCollectionMultimedia(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
+      }).catch(() => {
+      });
     },
     /** 导出按钮操作 */
     handleExport() {

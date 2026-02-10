@@ -31,8 +31,11 @@ public class CollectionMultimedia implements Serializable
     private Long id;
 
     /** 藏品 */
-    @Excel(name = "藏品")
+    @Excel(name = "藏品",type = Excel.Type.IMPORT)
     private Long collectionId;
+    @Excel(name = "藏品",type = Excel.Type.EXPORT)
+    @TableField(exist = false)
+    private String collectionName;
 
     /** 名称 */
     @Excel(name = "名称")
@@ -59,8 +62,11 @@ public class CollectionMultimedia implements Serializable
     private String remark;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人",type = Excel.Type.IMPORT)
     private Long userId;
+    @Excel(name = "创建人",type = Excel.Type.EXPORT)
+    @TableField(exist = false)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")
