@@ -81,6 +81,17 @@ public class NoticeInfoController extends BaseController
     }
 
     /**
+     * 详细信息
+     */
+    @PreAuthorize("@ss.hasPermi('manage:noticeInfo:query')")
+    @GetMapping(value = "/detail/{id}")
+    public AjaxResult detail(@PathVariable("id") Long id)
+    {
+        NoticeInfoVo noticeInfo = noticeInfoService.selectNoticeInfoDetailById(id);
+        return success(noticeInfo);
+    }
+
+    /**
      * 新增咨询信息
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:add')")

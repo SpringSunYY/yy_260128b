@@ -1,40 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.NoticeInfoMapper">
-    
+
     <resultMap type="NoticeInfo" id="NoticeInfoResult">
-        <result property="id"    column="id"    />
-        <result property="title"    column="title"    />
-        <result property="type"    column="type"    />
-        <result property="sortNum"    column="sort_num"    />
-        <result property="status"    column="status"    />
-        <result property="collectionIds"    column="collection_ids"    />
-        <result property="content"    column="content"    />
-        <result property="remark"    column="remark"    />
-        <result property="userId"    column="user_id"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateTime"    column="update_time"    />
+        <result property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="type" column="type"/>
+        <result property="sortNum" column="sort_num"/>
+        <result property="status" column="status"/>
+        <result property="collectionIds" column="collection_ids"/>
+        <result property="content" column="content"/>
+        <result property="collectNumber" column="collect_number"/>
+        <result property="remark" column="remark"/>
+        <result property="userId" column="user_id"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <sql id="selectNoticeInfoVo">
-        select id, title, type, sort_num, status, collection_ids, content, remark, user_id, update_by, create_time, update_time from tb_notice_info
+        select id,
+               title,
+               type,
+               sort_num,
+               status,
+               collection_ids,
+               content,
+               collect_number,
+               remark,
+               user_id,
+               update_by,
+               create_time,
+               update_time
+        from tb_notice_info
     </sql>
 
     <select id="selectNoticeInfoList" parameterType="NoticeInfo" resultMap="NoticeInfoResult">
         <include refid="selectNoticeInfoVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
-            <if test="type != null  and type != ''"> and type = #{type}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
-            <if test="collectionIds != null  and collectionIds != ''"> and collection_ids = #{collectionIds}</if>
-            <if test="params.beginUpdateBy != null and params.beginUpdateBy != '' and params.endUpdateBy != null and params.endUpdateBy != ''"> and DATE_FORMAT(update_by, '%Y-%m-%d') between #{params.beginUpdateBy} and #{params.endUpdateBy}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="type != null  and type != ''">and type = #{type}</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+            <if test="collectionIds != null  and collectionIds != ''">and collection_ids = #{collectionIds}</if>
+            <if test="params.beginUpdateBy != null and params.beginUpdateBy != '' and params.endUpdateBy != null and params.endUpdateBy != ''">
+                and DATE_FORMAT(update_by, '%Y-%m-%d') between #{params.beginUpdateBy} and #{params.endUpdateBy}
+            </if>
         </where>
+        order by sort_num asc , collect_number desc
     </select>
-    
+
     <select id="selectNoticeInfoById" parameterType="Long" resultMap="NoticeInfoResult">
         <include refid="selectNoticeInfoVo"/>
         where id = #{id}
@@ -49,12 +66,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">status,</if>
             <if test="collectionIds != null">collection_ids,</if>
             <if test="content != null">content,</if>
+            <if test="collectNumber != null">collect_number,</if>
             <if test="remark != null">remark,</if>
             <if test="userId != null">user_id,</if>
             <if test="updateBy != null">update_by,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="title != null and title != ''">#{title},</if>
             <if test="type != null and type != ''">#{type},</if>
@@ -62,12 +80,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">#{status},</if>
             <if test="collectionIds != null">#{collectionIds},</if>
             <if test="content != null">#{content},</if>
+            <if test="collectNumber != null">#{collectNumber},</if>
             <if test="remark != null">#{remark},</if>
             <if test="userId != null">#{userId},</if>
             <if test="updateBy != null">#{updateBy},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateNoticeInfo" parameterType="NoticeInfo">
@@ -79,6 +98,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="status != null and status != ''">status = #{status},</if>
             <if test="collectionIds != null">collection_ids = #{collectionIds},</if>
             <if test="content != null">content = #{content},</if>
+            <if test="collectNumber != null">collect_number = #{collectNumber},</if>
             <if test="remark != null">remark = #{remark},</if>
             <if test="userId != null">user_id = #{userId},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
@@ -89,11 +109,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteNoticeInfoById" parameterType="Long">
-        delete from tb_notice_info where id = #{id}
+        delete
+        from tb_notice_info
+        where id = #{id}
     </delete>
 
     <delete id="deleteNoticeInfoByIds" parameterType="String">
-        delete from tb_notice_info where id in 
+        delete from tb_notice_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>

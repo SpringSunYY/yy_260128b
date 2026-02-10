@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 /**
  * 咨询信息Service接口
- * 
+ *
  * @author YY
  * @date 2026-02-10
  */
@@ -18,15 +18,23 @@ public interface INoticeInfoService extends IService<NoticeInfo>
     //region mybatis代码
     /**
      * 查询咨询信息
-     * 
+     *
      * @param id 咨询信息主键
      * @return 咨询信息
      */
     public NoticeInfo selectNoticeInfoById(Long id);
 
     /**
+     * 查询咨询信息
+     *
+     * @param id 咨询信息主键
+     * @return 咨询信息
+     */
+    NoticeInfoVo selectNoticeInfoDetailById(Long id);
+
+    /**
      * 查询咨询信息列表
-     * 
+     *
      * @param noticeInfo 咨询信息
      * @return 咨询信息集合
      */
@@ -34,7 +42,7 @@ public interface INoticeInfoService extends IService<NoticeInfo>
 
     /**
      * 新增咨询信息
-     * 
+     *
      * @param noticeInfo 咨询信息
      * @return 结果
      */
@@ -42,7 +50,7 @@ public interface INoticeInfoService extends IService<NoticeInfo>
 
     /**
      * 修改咨询信息
-     * 
+     *
      * @param noticeInfo 咨询信息
      * @return 结果
      */
@@ -50,7 +58,7 @@ public interface INoticeInfoService extends IService<NoticeInfo>
 
     /**
      * 批量删除咨询信息
-     * 
+     *
      * @param ids 需要删除的咨询信息主键集合
      * @return 结果
      */
@@ -58,7 +66,7 @@ public interface INoticeInfoService extends IService<NoticeInfo>
 
     /**
      * 删除咨询信息信息
-     * 
+     *
      * @param id 咨询信息主键
      * @return 结果
      */

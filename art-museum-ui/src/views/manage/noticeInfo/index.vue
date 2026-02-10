@@ -120,21 +120,22 @@
       </el-table-column>
       <el-table-column label="关联藏品" align="center" v-if="columns[5].visible" prop="collectionIds">
         <template slot-scope="scope">
-          <el-tag v-for="tag in scope.row.collectionNames ? scope.row.collectionNames.split(',') : []"
-                  :key="tag"
+          <el-tag v-for="(tag, index) in scope.row.collectionNames ? scope.row.collectionNames.split(',') : []"
+                  :key="`${scope.row.id}-${index}`"
                   :disable-transitions="false"
-               >
-            {{tag}}
+          >
+            {{ tag }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="内容" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
                        prop="content"/>
-      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible"
+      <el-table-column label="收藏数" align="center" v-if="columns[7].visible" prop="collectNumber"/>
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
                        prop="remark"/>
-      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
                        prop="userName"/>
-      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
                        prop="updateBy"/>
       <el-table-column label="创建时间" align="center" v-if="columns[10].visible" prop="createTime" width="180">
         <template slot-scope="scope">
@@ -163,6 +164,14 @@
             @click="handleDelete(scope.row)"
             v-hasPermi="['manage:noticeInfo:remove']"
           >删除
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-view"
+            @click="handleView(scope.row)"
+            v-hasPermi="['manage:noticeInfo:query']"
+          >查看
           </el-button>
         </template>
       </el-table-column>
@@ -235,12 +244,92 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 查看详情对话框 -->
+    <el-dialog title="咨询详情" :visible.sync="viewOpen" width="800px" append-to-body>
+      <div class="notice-detail">
+        <div class="detail-header">
+          <h2 class="detail-title">{{ viewForm.title }}</h2>
+          <div class="detail-tags">
+            <dict-tag :options="dict.type.notion_type" :value="viewForm.type"/>
+            <dict-tag :options="dict.type.sys_notice_status" :value="viewForm.status"/>
+          </div>
+        </div>
+
+        <el-divider content-position="left">
+          <span class="divider-title">基本信息</span>
+        </el-divider>
+
+        <div class="detail-content">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">收藏数</span>
+              <span class="info-value">{{ viewForm.collectNumber }}</span>
+            </div>
+            <div class="info-item" v-if="viewForm.userName">
+              <span class="info-label">创建人</span>
+              <span class="info-value">{{ viewForm.userName }}</span>
+            </div>
+            <div class="info-item" v-if="viewForm.createTime">
+              <span class="info-label">创建时间</span>
+              <span class="info-value">{{ parseTime(viewForm.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+            </div>
+            <div class="info-item" v-if="viewForm.updateTime">
+              <span class="info-label">更新时间</span>
+              <span class="info-value">{{ parseTime(viewForm.updateTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+            </div>
+            <div class="info-item" v-if="viewForm.remark">
+              <span class="info-label">备注</span>
+              <span class="info-value">{{ viewForm.remark }}</span>
+            </div>
+          </div>
+        </div>
+
+        <el-divider content-position="left" v-if="viewForm.collectionNames">
+          <span class="divider-title">关联藏品</span>
+        </el-divider>
+
+        <div class="collection-list" v-if="viewForm.collectionNames">
+          <el-tag
+            v-for="(name, index) in viewForm.collectionNames.split(',')"
+            :key="`${index}-${viewForm.collectionIds.split(',')[index] || index}`"
+            type="primary"
+            size="medium"
+            class="collection-tag"
+            @click="handleViewCollection(viewForm.collectionIds.split(',')[index])">
+            <i class="el-icon-picture-outline" style="margin-right: 4px;"></i>
+            {{ name }}
+          </el-tag>
+        </div>
+
+        <el-divider content-position="left" v-if="viewForm.content">
+          <span class="divider-title">公告内容</span>
+        </el-divider>
+
+        <div class="content-box" v-html="viewForm.content"></div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button :type="viewForm.isCollect ? 'warning' : 'primary'"
+                   :icon="viewForm.isCollect ? 'el-icon-star-on' : 'el-icon-star-off'" @click="handleCollect">
+          {{ viewForm.isCollect ? '已收藏' : '收藏' }}
+        </el-button>
+        <el-button type="primary" plain @click="viewOpen = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {addNoticeInfo, delNoticeInfo, getNoticeInfo, listNoticeInfo, updateNoticeInfo} from "@/api/manage/noticeInfo";
+import {
+  addNoticeInfo,
+  delNoticeInfo,
+  getNoticeInfo,
+  getNoticeInfoDetail,
+  listNoticeInfo,
+  updateNoticeInfo
+} from "@/api/manage/noticeInfo";
 import {listCollectionInfo} from "@/api/manage/collectionInfo";
+import {addCollect} from "@/api/manage/collect";
 
 export default {
   name: "NoticeInfo",
@@ -265,12 +354,13 @@ export default {
         {key: 3, label: '排序', visible: false},
         {key: 4, label: '状态', visible: true},
         {key: 5, label: '关联藏品', visible: true},
-        {key: 6, label: '内容', visible: true},
-        {key: 7, label: '备注', visible: false},
-        {key: 8, label: '创建人', visible: true},
-        {key: 9, label: '更新人', visible: false},
-        {key: 10, label: '创建时间', visible: true},
-        {key: 11, label: '更新时间', visible: false},
+        {key: 6, label: '内容', visible: false},
+        {key: 7, label: '收藏数', visible: true},
+        {key: 8, label: '备注', visible: false},
+        {key: 9, label: '创建人', visible: true},
+        {key: 10, label: '更新人', visible: false},
+        {key: 11, label: '创建时间', visible: true},
+        {key: 12, label: '更新时间', visible: false},
       ],
       // 遮罩层
       loading: true,
@@ -290,6 +380,10 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      // 查看详情弹出层
+      viewOpen: false,
+      // 查看详情表单
+      viewForm: {},
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -447,6 +541,154 @@ export default {
         ...this.queryParams
       }, `noticeInfo_${new Date().getTime()}.xlsx`)
     },
+    /** 查看详情 */
+    handleView(row) {
+      getNoticeInfoDetail(row.id).then(response => {
+        this.viewForm = response.data;
+        this.viewOpen = true;
+      })
+    },
+    /** 查看藏品详情 */
+    handleViewCollection(id) {
+      const route = this.$router.resolve({
+        name: 'CollectionInfoDetail',
+        query: {
+          id: id
+        }
+      });
+      window.open(route.href, '_blank');
+    },
+    handleCollect() {
+      addCollect({targetId: this.viewForm.id, type: '1'}).then(res => {
+        this.viewForm.isCollect = !this.viewForm.isCollect;
+        this.$modal.msgSuccess(this.viewForm.isCollect ? "收藏成功" : "取消收藏成功");
+      })
+    }
   }
 };
 </script>
+
+<style scoped>
+.notice-detail {
+  padding: 0 10px;
+}
+
+.detail-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.detail-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.detail-tags {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.divider-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #909399;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.detail-content {
+  margin-bottom: 20px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 24px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #909399;
+  white-space: nowrap;
+  margin-right: 12px;
+  min-width: 70px;
+}
+
+.info-value {
+  font-size: 13px;
+  color: #606266;
+  word-break: break-all;
+}
+
+.collection-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.collection-tag {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-style: dashed;
+}
+
+.collection-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+}
+
+.content-box {
+  font-size: 16px;
+  line-height: 2;
+  color: #555;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.content-box ::v-deep p {
+  margin-bottom: 16px;
+}
+
+.content-box ::v-deep img {
+  max-width: 100%;
+  height: auto !important;
+  object-fit: contain;
+  border-radius: 8px;
+  margin: 20px 0;
+  display: block;
+}
+
+/* Element UI 样式覆盖 */
+::v-deep .el-dialog__header {
+  border-bottom: 1px solid #ebeef5;
+  padding: 16px 20px 14px;
+}
+
+::v-deep .el-dialog__title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #303133;
+}
+
+::v-deep .el-divider--horizontal {
+  margin: 20px 0;
+}
+
+::v-deep .el-divider__text {
+  padding: 0 16px;
+  background: transparent;
+  font-size: 13px;
+}
+</style>

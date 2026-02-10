@@ -17,6 +17,14 @@ export function getNoticeInfo(id) {
   })
 }
 
+//查询咨询信息详细
+export function getNoticeInfoDetail(id) {
+  return request({
+    url: '/manage/noticeInfo/detail/' + id,
+    method: 'get'
+  })
+}
+
 // 新增咨询信息
 export function addNoticeInfo(data) {
   return request({

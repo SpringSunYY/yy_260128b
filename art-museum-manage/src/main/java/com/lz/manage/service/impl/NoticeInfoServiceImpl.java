@@ -7,10 +7,14 @@ import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.mapper.CollectMapper;
 import com.lz.manage.mapper.NoticeInfoMapper;
+import com.lz.manage.model.domain.Collect;
 import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.domain.NoticeInfo;
 import com.lz.manage.model.dto.noticeInfo.NoticeInfoQuery;
+import com.lz.manage.model.enums.CollectTypeEnum;
 import com.lz.manage.model.vo.noticeInfo.NoticeInfoVo;
 import com.lz.manage.service.ICollectionInfoService;
 import com.lz.manage.service.INoticeInfoService;
@@ -39,6 +43,9 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     @Resource
     private ISysUserService sysUserService;
 
+    @Resource
+    private CollectMapper collectMapper;
+
     //region mybatis代码
 
     /**
@@ -52,6 +59,35 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
         return noticeInfoMapper.selectNoticeInfoById(id);
     }
 
+    @Override
+    public NoticeInfoVo selectNoticeInfoDetailById(Long id) {
+        NoticeInfo noticeInfo = this.selectNoticeInfoById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(noticeInfo), "资讯信息不存在");
+        initData(noticeInfo);
+        NoticeInfoVo noticeInfoVo = NoticeInfoVo.objToVo(noticeInfo);
+        //查询是否收藏
+        Collect collect = new Collect();
+        collect.setUserId(SecurityUtils.getUserId());
+        collect.setType(CollectTypeEnum.COLLECT_TYPE_1.getValue());
+        collect.setTargetId(id);
+        List<Collect> collects = collectMapper.selectCollectList(collect);
+        noticeInfoVo.setIsCollect(StringUtils.isNotEmpty(collects));
+        return noticeInfoVo;
+    }
+
+    private void initData(NoticeInfo noticeInfo) {
+        SysUser sysUser = sysUserService.selectUserById(noticeInfo.getUserId());
+        if (StringUtils.isNotNull(sysUser)) {
+            noticeInfo.setUserName(sysUser.getUserName());
+        }
+        if (StringUtils.isNotEmpty(noticeInfo.getCollectionIds())) {
+            Set<String> collectionIds = StringUtils.str2Set(noticeInfo.getCollectionIds(), ",");
+            List<CollectionInfo> list = collectionInfoService.list(new LambdaQueryWrapper<CollectionInfo>()
+                    .in(CollectionInfo::getId, collectionIds));
+            noticeInfo.setCollectionNames(list.stream().map(CollectionInfo::getName).map(String::valueOf).collect(Collectors.joining(",")));
+        }
+    }
+
     /**
      * 查询咨询信息列表
      *
@@ -62,16 +98,7 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     public List<NoticeInfo> selectNoticeInfoList(NoticeInfo noticeInfo) {
         List<NoticeInfo> noticeInfos = noticeInfoMapper.selectNoticeInfoList(noticeInfo);
         for (NoticeInfo info : noticeInfos) {
-            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
-            if (StringUtils.isNotNull(sysUser)) {
-                info.setUserName(sysUser.getUserName());
-            }
-            if (StringUtils.isNotEmpty(info.getCollectionIds())) {
-                Set<String> collectionIds = StringUtils.str2Set(info.getCollectionIds(), ",");
-                List<CollectionInfo> list = collectionInfoService.list(new LambdaQueryWrapper<CollectionInfo>()
-                        .in(CollectionInfo::getId, collectionIds));
-                info.setCollectionNames(list.stream().map(CollectionInfo::getName).map(String::valueOf).collect(Collectors.joining(",")));
-            }
+            initData(info);
         }
         return noticeInfos;
     }
@@ -84,6 +111,7 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      */
     @Override
     public int insertNoticeInfo(NoticeInfo noticeInfo) {
+        noticeInfo.setCollectNumber(0L);
         //根据逗号分割in查询
         initNoticeCollection(noticeInfo);
         noticeInfo.setUserId(SecurityUtils.getUserId());

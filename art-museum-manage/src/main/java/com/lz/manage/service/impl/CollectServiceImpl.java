@@ -9,11 +9,13 @@ import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.CollectMapper;
 import com.lz.manage.model.domain.Collect;
 import com.lz.manage.model.domain.CollectionInfo;
+import com.lz.manage.model.domain.NoticeInfo;
 import com.lz.manage.model.dto.collect.CollectQuery;
 import com.lz.manage.model.enums.CollectTypeEnum;
 import com.lz.manage.model.vo.collect.CollectVo;
 import com.lz.manage.service.ICollectService;
 import com.lz.manage.service.ICollectionInfoService;
+import com.lz.manage.service.INoticeInfoService;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
 
@@ -38,6 +40,9 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
 
     @Resource
     private ISysUserService sysUserService;
+
+    @Resource
+    private INoticeInfoService noticeInfoService;
     //region mybatis代码
 
     /**
@@ -69,6 +74,11 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
                 CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(info.getTargetId());
                 if (StringUtils.isNotNull(collectionInfo)) {
                     info.setTargetName(collectionInfo.getName());
+                }
+            } else {
+                NoticeInfo noticeInfo = noticeInfoService.selectNoticeInfoById(info.getTargetId());
+                if (StringUtils.isNotNull(noticeInfo)) {
+                    info.setTargetName(noticeInfo.getTitle());
                 }
             }
         }
@@ -106,6 +116,15 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
 
                 collectionInfo.setCollectNumber(count);
                 collectionInfoService.updateById(collectionInfo);
+            }
+        } else {
+            NoticeInfo noticeInfo = noticeInfoService.selectNoticeInfoById(collect.getTargetId());
+            if (StringUtils.isNotNull(noticeInfo)) {
+                long count = this.count(new LambdaQueryWrapper<Collect>()
+                        .eq(Collect::getTargetId, noticeInfo.getId())
+                        .eq(Collect::getType, CollectTypeEnum.COLLECT_TYPE_1.getValue()));
+                noticeInfo.setCollectNumber(count);
+                noticeInfoService.updateById(noticeInfo);
             }
         }
         return 1;
