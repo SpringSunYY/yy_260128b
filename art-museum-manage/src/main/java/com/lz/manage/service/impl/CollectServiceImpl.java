@@ -89,12 +89,26 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
                 .eq(Collect::getTargetId, collect.getTargetId())
                 .eq(Collect::getType, collect.getType());
         Collect collectDb = collectMapper.selectOne(queryWrapper);
-        if (StringUtils.isNotNull(collectDb)) {
-            return collectMapper.delete(queryWrapper);
+        boolean isCollect = StringUtils.isNull(collectDb);
+        if (!isCollect) {
+            collectMapper.delete(queryWrapper);
         } else {
             collect.setCreateTime(DateUtils.getNowDate());
-            return collectMapper.insertCollect(collect);
+            collectMapper.insertCollect(collect);
         }
+        //如果是藏品，需要更新数量
+        if (collect.getType().equals(CollectTypeEnum.COLLECT_TYPE_2.getValue())) {
+            CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(collect.getTargetId());
+            if (StringUtils.isNotNull(collectionInfo)) {
+                long count = this.count(new LambdaQueryWrapper<Collect>()
+                        .eq(Collect::getTargetId, collectionInfo.getId())
+                        .eq(Collect::getType, CollectTypeEnum.COLLECT_TYPE_2.getValue()));
+
+                collectionInfo.setCollectNumber(count);
+                collectionInfoService.updateById(collectionInfo);
+            }
+        }
+        return 1;
     }
 
     /**

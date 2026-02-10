@@ -168,11 +168,11 @@
           <el-input v-model="form.name" placeholder="请输入名称" />
         </el-form-item>
         <el-form-item label="价格" prop="price">
-          <el-input v-model="form.price" placeholder="请输入价格" />
+          <el-input-number :min="0" :precision="2" v-model="form.price" placeholder="请输入价格" />
         </el-form-item>
-        <el-form-item label="销量" prop="sales">
-          <el-input v-model="form.sales" placeholder="请输入销量" />
-        </el-form-item>
+<!--        <el-form-item label="销量" prop="sales">-->
+<!--          <el-input v-model="form.sales" placeholder="请输入销量" />-->
+<!--        </el-form-item>-->
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio
