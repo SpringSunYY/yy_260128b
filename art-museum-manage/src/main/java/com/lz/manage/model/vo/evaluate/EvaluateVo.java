@@ -25,6 +25,7 @@ public class EvaluateVo implements Serializable
 
     /** 藏品 */
     private Long collectionId;
+    private String collectionName;
 
     /** 状态 */
     private String status;
@@ -40,12 +41,13 @@ public class EvaluateVo implements Serializable
 
     /** 创建人 */
     private Long userId;
+    private String userName;
 
     /** 更新人 */
     private String updateBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新时间 */

@@ -31,8 +31,11 @@ public class Evaluate implements Serializable
     private Long id;
 
     /** 藏品 */
-    @Excel(name = "藏品")
+    @Excel(name = "藏品",type = Excel.Type.IMPORT)
     private Long collectionId;
+    @TableField(exist = false)
+    @Excel(name = "藏品名称",type = Excel.Type.EXPORT)
+    private String collectionName;
 
     /** 状态 */
     @Excel(name = "状态", dictType = "evaluate_status")
@@ -51,16 +54,19 @@ public class Evaluate implements Serializable
     private String content;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人", type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "创建人名称", type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")
     private String updateBy;
 
     /** 创建时间 */
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd")
+     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Excel(name = "创建时间", width = 30, dateFormat = "yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
     /** 更新时间 */

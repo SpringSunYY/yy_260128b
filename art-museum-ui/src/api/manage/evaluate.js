@@ -9,6 +9,15 @@ export function listEvaluate(query) {
   })
 }
 
+// 查询评价信息根据藏品
+export function listEvaluateByCollection(query) {
+  return request({
+    url: '/manage/evaluate/list/collection',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询评价信息详细
 export function getEvaluate(id) {
   return request({
