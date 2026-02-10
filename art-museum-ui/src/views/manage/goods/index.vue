@@ -10,12 +10,21 @@
         />
       </el-form-item>
       <el-form-item label="关联藏品" prop="collectionId">
-        <el-input
+        <el-select
           v-model="queryParams.collectionId"
-          placeholder="请输入关联藏品"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
+          filterable
+          remote
+          reserve-keyword
+          placeholder="请输入藏品名称"
+          :remote-method="remoteGetCollectionInfoList"
+          :loading="collectionInfoLoading">
+          <el-option
+            v-for="item in collectionInfoList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="名称" prop="name">
         <el-input

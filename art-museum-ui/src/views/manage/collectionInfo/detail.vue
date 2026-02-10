@@ -59,6 +59,34 @@
         </div>
       </div>
 
+    <!-- 商品列表 -->
+    <div class="goods-section" v-if="goodsList.length > 0">
+      <h3 class="section-heading">相关商品</h3>
+      <div class="goods-grid">
+        <div class="goods-card" v-for="goods in goodsList" :key="goods.id" @click="handleGoodsClick(goods)">
+          <div class="goods-image">
+            <image-preview :src="goods.imageSrc" fit="cover" />
+          </div>
+          <div class="goods-info">
+            <h4 class="goods-name">{{ goods.name }}</h4>
+            <p class="goods-price">¥{{ goods.price }}</p>
+            <p class="goods-sales">销量 {{ goods.sales || 0 }} | 库存 {{ goods.inventory || 0 }}</p>
+            <el-button type="primary" size="mini" class="detail-btn" @click.stop="handleGoodsClick(goods)">详情</el-button>
+          </div>
+        </div>
+      </div>
+      <div class="pagination-wrapper" id="goods-pagination" v-if="goodsTotal > goodsQueryParams.pageSize">
+        <pagination
+          v-show="goodsTotal > 0"
+          :total="goodsTotal"
+          :page.sync="goodsQueryParams.pageNum"
+          :limit.sync="goodsQueryParams.pageSize"
+          :auto-scroll="false"
+          @pagination="getGoodsList"
+        />
+      </div>
+    </div>
+
       <!-- 简介 -->
       <div class="text-panel" v-if="detail.introduction">
         <h3 class="section-heading">简介</h3>
@@ -87,6 +115,7 @@
 
 <script>
 import {getCollectionInfoDetail} from "@/api/manage/collectionInfo";
+import {listGoods} from "@/api/manage/goods";
 import ImagePreview from "@/components/ImagePreview/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
 import {addCollect} from "@/api/manage/collect";
@@ -101,7 +130,16 @@ export default {
       detail: {},
       imageList: [],
       isCollect: false,
-      id: null
+      id: null,
+      // 商品列表相关
+      goodsList: [],
+      goodsTotal: 0,
+      goodsQueryParams: {
+        pageNum: 1,
+        pageSize: 12,
+        collectionId: null,
+        status: '1'
+      }
     };
   },
   created() {
@@ -125,10 +163,27 @@ export default {
           this.imageList = this.detail.imageSrc.split(',').map(item => item.trim()).filter(item => item);
         }
 
+        // 获取商品列表
+        this.goodsQueryParams.collectionId = id;
+        this.getGoodsList();
+
         this.isCollect = Math.random() > 0.5;
       }).catch(error => {
         console.error("获取详情失败", error);
         this.loading = false;
+      });
+    },
+    getGoodsList() {
+      listGoods(this.goodsQueryParams).then(response => {
+        this.goodsList = response.rows || [];
+        this.goodsTotal = response.total || 0;
+      });
+    },
+    // 点击商品卡片
+    handleGoodsClick(goods) {
+      this.$router.push({
+        name: 'GoodsDetail',
+        query: { id: goods.id }
       });
     },
     handleCollect() {
@@ -359,6 +414,93 @@ export default {
       border-radius: 8px;
       margin: 20px 0;
     }
+  }
+}
+
+// 商品列表样式
+.goods-section {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+
+  .section-heading {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1976d2;
+    margin: 0 0 24px 0;
+    padding-left: 16px;
+    border-left: 4px solid #1976d2;
+  }
+
+    .goods-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+  .goods-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    .goods-image {
+      width: 100%;
+      height: 260px;
+      overflow: hidden;
+
+      :deep(.image-preview) {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .goods-info {
+      padding: 16px;
+      position: relative;
+
+      .goods-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin: 0 0 8px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .goods-price {
+        font-size: 18px;
+        font-weight: 600;
+        color: #f5222d;
+        margin: 0;
+      }
+
+      .goods-sales {
+        font-size: 12px;
+        color: #999;
+        margin: 4px 0 8px 0;
+      }
+
+      .detail-btn {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+      }
+    }
+  }
+
+  .pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
   }
 }
 

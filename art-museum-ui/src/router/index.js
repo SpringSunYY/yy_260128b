@@ -182,6 +182,13 @@ export const dynamicRoutes = [
     permissions: ['collectionMange:collectionInfo:query'],
     component: () => import('@/views/manage/collectionInfo/detail'),
   },
+  {
+    path: '/collectionMange/goods/detail',
+    name: 'GoodsDetail',
+    hidden: true,
+    permissions: ['collectionMange:goods:query'],
+    component: () => import('@/views/manage/goods/detail'),
+  },
 ]
 
 // 防止连续点击多次路由报错

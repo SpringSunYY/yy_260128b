@@ -29,8 +29,8 @@
       </el-form-item>
     </el-form>
 
-    <div v-loading="loading" class="card-grid">
-      <el-row :gutter="20">
+    <div class="card-grid" v-loading="loading">
+      <el-row :gutter="20" ref="cardGrid">
         <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in collectionList" :key="item.id" class="mb20">
           <el-card :body-style="{ padding: '0px' }" shadow="hover" class="collection-card">
               <div class="card-image-container">
@@ -71,6 +71,12 @@
           <el-empty description="暂无藏品数据"></el-empty>
         </el-col>
       </el-row>
+      <div v-if="loadingMore" class="loading-more">
+        <i class="el-icon-loading"></i> 加载中...
+      </div>
+      <div v-if="noMore && collectionList.length > 0" class="loading-more">
+        没有更多数据了
+      </div>
     </div>
   </div>
 </template>
@@ -91,7 +97,9 @@ export default {
     return {
       title: process.env.VUE_APP_TITLE,
       loading: true,
+      loadingMore: false,
       collectionList: [],
+      total: 0,
       // 分类标签树选项
       categoryOptions: [],
       // 查询参数
@@ -108,9 +116,18 @@ export default {
       showSearch: true
     };
   },
+  computed: {
+    noMore() {
+      return this.collectionList.length >= this.total;
+    }
+  },
   created() {
     this.getTreeselect();
     this.fetchData();
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
     /** 查询分类标签下拉树结构 */
@@ -133,15 +150,41 @@ export default {
         children: node.children
       };
     },
-    fetchData() {
-      this.loading = true;
+    fetchData(isLoadMore = false) {
+      if (isLoadMore) {
+        this.loadingMore = true;
+      } else {
+        this.loading = true;
+      }
+
       listCollectionInfo(this.queryParams).then(response => {
-        this.collectionList = response.rows || [];
-        this.loading = false;
+        this.total = response.total || 0;
+        if (isLoadMore) {
+          this.collectionList = [...this.collectionList, ...(response.rows || [])];
+        } else {
+          this.collectionList = response.rows || [];
+        }
       }).catch(error => {
         console.error("获取藏品列表失败", error);
+      }).finally(() => {
         this.loading = false;
+        this.loadingMore = false;
       });
+    },
+    // 加载更多
+    loadMore() {
+      if (this.loadingMore || this.noMore) return;
+      this.queryParams.pageNum++;
+      this.fetchData(true);
+    },
+    handleScroll() {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+
+      if (scrollTop + windowHeight >= documentHeight - 100) {
+        this.loadMore();
+      }
     },
     /** 搜索按钮操作 */
     handleSearch() {
@@ -156,6 +199,7 @@ export default {
       this.queryParams.sortType = null;
       this.queryParams.author = null;
       this.queryParams.era = null;
+      this.queryParams.pageNum = 1;
       this.handleSearch();
     },
     /** 查看详情 */
@@ -197,6 +241,13 @@ export default {
 
 .card-grid {
   min-height: 400px;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 20px;
+  color: #909399;
+  font-size: 14px;
 }
 
 .mb20 {
