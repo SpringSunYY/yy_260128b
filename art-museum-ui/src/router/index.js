@@ -86,6 +86,12 @@ export const constantRoutes = [
         meta: {title: '个人中心', icon: 'user'}
       }
     ]
+  },
+  {
+    path: '/manage/collectionMultimedia/play',
+    component: () => import('@/views/manage/collectionMultimedia/play'),
+    hidden: true,
+    name: 'CollectionMultimediaPlay'
   }
 ]
 

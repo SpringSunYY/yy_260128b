@@ -2,6 +2,7 @@ package com.lz.manage.model.vo.collectionInfo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lz.manage.model.domain.CollectionInfo;
+import com.lz.manage.model.domain.CollectionMultimedia;
 import com.lz.manage.model.domain.Goods;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
@@ -119,6 +120,11 @@ public class CollectionInfoDetailVo implements Serializable {
      * 商品信息
      */
     private List<Goods> goodsList;
+
+    /**
+     * 媒体信息
+     */
+    private List<CollectionMultimedia> multimediaList;
 
 
     /**

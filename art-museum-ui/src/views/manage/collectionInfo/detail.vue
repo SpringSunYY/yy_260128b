@@ -59,33 +59,87 @@
         </div>
       </div>
 
-    <!-- 商品列表 -->
-    <div class="goods-section" v-if="goodsList.length > 0">
-      <h3 class="section-heading">相关商品</h3>
-      <div class="goods-grid">
-        <div class="goods-card" v-for="goods in goodsList" :key="goods.id" @click="handleGoodsClick(goods)">
-          <div class="goods-image">
-            <image-preview :src="goods.imageSrc" fit="cover" />
-          </div>
-          <div class="goods-info">
-            <h4 class="goods-name">{{ goods.name }}</h4>
-            <p class="goods-price">¥{{ goods.price }}</p>
-            <p class="goods-sales">销量 {{ goods.sales || 0 }} | 库存 {{ goods.inventory || 0 }}</p>
-            <el-button type="primary" size="mini" class="detail-btn" @click.stop="handleGoodsClick(goods)">详情</el-button>
+      <!-- 多媒体列表 -->
+      <div class="multimedia-section" v-if="multimediaList && multimediaList.length > 0">
+        <h3 class="section-heading">相关多媒体</h3>
+        <div class="multimedia-grid">
+          <div class="multimedia-card" v-for="(item, index) in multimediaList" :key="index">
+            <div class="multimedia-preview">
+              <!-- 图片类型：显示预览图 -->
+              <template v-if="isImageFile(item.fileUrl)">
+                <image-preview :src="getFirstFile(item.fileUrl)" fit="contain"/>
+              </template>
+              <!-- 音频类型：显示播放按钮 -->
+              <template v-else-if="isAudioFile(item.fileUrl)">
+                <div class="audio-placeholder" @click="playAudio(item)">
+                  <i class="el-icon-headset"></i>
+                  <span>音频</span>
+                </div>
+              </template>
+              <!-- 视频类型：显示播放按钮 -->
+              <template v-else-if="isVideoFile(item.fileUrl)">
+                <div class="video-placeholder" @click="playVideo(item)">
+                  <i class="el-icon-video-camera"></i>
+                  <span>视频</span>
+                </div>
+              </template>
+              <!-- 其他类型：显示文件图标 -->
+              <template v-else>
+                <div class="file-placeholder">
+                  <i class="el-icon-document"></i>
+                  <span>文件</span>
+                </div>
+              </template>
+            </div>
+            <div class="multimedia-info">
+              <h4 class="multimedia-name">{{ item.name }}</h4>
+              <div class="multimedia-tags">
+                <dict-tag :options="dict.type.collection_multimedia_type" :value="item.type"/>
+                <el-button
+                  type="text"
+                  size="mini"
+                  icon="el-icon-download"
+                  @click.stop="downloadFile(item)"
+                  class="download-btn"
+                >下载
+                </el-button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="pagination-wrapper" id="goods-pagination" v-if="goodsTotal > goodsQueryParams.pageSize">
-        <pagination
-          v-show="goodsTotal > 0"
-          :total="goodsTotal"
-          :page.sync="goodsQueryParams.pageNum"
-          :limit.sync="goodsQueryParams.pageSize"
-          :auto-scroll="false"
-          @pagination="getGoodsList"
-        />
+
+      <!-- 音频播放器组件 -->
+      <GlobalAudioPlayer ref="audioPlayer"/>
+
+      <!-- 商品列表 -->
+      <div class="goods-section" v-if="goodsList.length > 0">
+        <h3 class="section-heading">相关商品</h3>
+        <div class="goods-grid">
+          <div class="goods-card" v-for="goods in goodsList" :key="goods.id">
+            <div class="goods-image">
+              <image-preview :src="goods.imageSrc" fit="cover"/>
+            </div>
+            <div class="goods-info">
+              <h4 class="goods-name">{{ goods.name }}</h4>
+              <p class="goods-price">¥{{ goods.price }}</p>
+              <p class="goods-sales">销量 {{ goods.sales || 0 }} | 库存 {{ goods.inventory || 0 }}</p>
+              <el-button type="primary" size="mini" class="detail-btn" @click.stop="handleGoodsClick(goods)">详情
+              </el-button>
+            </div>
+          </div>
+        </div>
+        <div class="pagination-wrapper" id="goods-pagination" v-if="goodsTotal > goodsQueryParams.pageSize">
+          <pagination
+            v-show="goodsTotal > 0"
+            :total="goodsTotal"
+            :page.sync="goodsQueryParams.pageNum"
+            :limit.sync="goodsQueryParams.pageSize"
+            :auto-scroll="false"
+            @pagination="getGoodsList"
+          />
+        </div>
       </div>
-    </div>
 
       <!-- 简介 -->
       <div class="text-panel" v-if="detail.introduction">
@@ -118,12 +172,14 @@ import {getCollectionInfoDetail} from "@/api/manage/collectionInfo";
 import {listGoods} from "@/api/manage/goods";
 import ImagePreview from "@/components/ImagePreview/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
+import GlobalAudioPlayer from "@/components/GlobalAudioPlayer/index.vue";
+import audioBus from "@/utils/audioBus";
 import {addCollect} from "@/api/manage/collect";
 
 export default {
   name: "CollectionInfoDetail",
-  components: {ImagePreview, DictTag},
-  dicts: ['collection_status', 'collection_sort_type'],
+  components: {ImagePreview, DictTag, GlobalAudioPlayer},
+  dicts: ['collection_status', 'collection_sort_type', 'collection_multimedia_type'],
   data() {
     return {
       loading: true,
@@ -131,6 +187,8 @@ export default {
       imageList: [],
       isCollect: false,
       id: null,
+      // 多媒体列表
+      multimediaList: [],
       // 商品列表相关
       goodsList: [],
       goodsTotal: 0,
@@ -163,6 +221,9 @@ export default {
           this.imageList = this.detail.imageSrc.split(',').map(item => item.trim()).filter(item => item);
         }
 
+        // 获取多媒体列表
+        this.multimediaList = response.data.multimediaList || [];
+
         // 获取商品列表
         this.goodsQueryParams.collectionId = id;
         this.getGoodsList();
@@ -179,13 +240,120 @@ export default {
         this.goodsTotal = response.total || 0;
       });
     },
-    // 点击商品卡片
+    // 点击商品卡片（打开新窗口）
     handleGoodsClick(goods) {
-      this.$router.push({
+      const routeData = this.$router.resolve({
         name: 'GoodsDetail',
-        query: { id: goods.id }
+        query: {id: goods.id}
       });
+      window.open(routeData.href, '_blank');
     },
+
+    // 获取文件名
+    getFileName(filePath) {
+      if (!filePath) return '';
+      const arr = filePath.split('/');
+      return arr[arr.length - 1];
+    },
+
+    // 获取文件路径（完整访问地址）
+    getFilePath(filePath) {
+      if (!filePath) return '';
+      // 如果是完整URL则直接返回，否则拼接基础路径
+      if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+        return filePath;
+      }
+      return process.env.VUE_APP_BASE_API + filePath;
+    },
+
+    // 判断是否为图片文件
+    isImageFile(fileUrl) {
+      if (!fileUrl) return false;
+      const ext = this.getFileExtension(fileUrl).toLowerCase();
+      return ['png', 'jpg', 'jpeg'].includes(ext);
+    },
+
+    // 判断是否为音频文件
+    isAudioFile(fileUrl) {
+      if (!fileUrl) return false;
+      const ext = this.getFileExtension(fileUrl).toLowerCase();
+      return ['mp3'].includes(ext);
+    },
+
+    // 判断是否为视频文件
+    isVideoFile(fileUrl) {
+      if (!fileUrl) return false;
+      const ext = this.getFileExtension(fileUrl).toLowerCase();
+      return ['mp4'].includes(ext);
+    },
+
+    // 获取文件扩展名
+    getFileExtension(fileUrl) {
+      if (!fileUrl) return '';
+      const arr = fileUrl.split('.');
+      if (arr.length > 1) {
+        return arr[arr.length - 1];
+      }
+      return '';
+    },
+
+    // 获取第一个文件路径
+    getFirstFile(fileUrl) {
+      if (!fileUrl) return '';
+      const files = fileUrl.split(',');
+      return files[0].trim();
+    },
+
+
+    // 播放音频（使用 GlobalAudioPlayer 组件）
+    playAudio(item) {
+      audioBus.$emit("play", item);
+      // 更新播放列表
+      audioBus.$emit("updatePlaylist", this.multimediaList.filter(m => this.isAudioFile(m.fileUrl)));
+    },
+
+    // 下载文件
+    downloadFile(item) {
+      const files = item.fileUrl.split(',');
+      // 如果只有一个文件，直接下载
+      if (files.length === 1) {
+        const fileUrl = this.getFilePath(files[0].trim());
+        const fileName = this.getFileName(files[0].trim());
+        this.downloadByUrl(fileUrl, fileName);
+      } else {
+        // 多个文件时依次下载
+        files.forEach(file => {
+          const fileUrl = this.getFilePath(file.trim());
+          const fileName = this.getFileName(file.trim());
+          this.downloadByUrl(fileUrl, fileName);
+        });
+      }
+    },
+
+    // 通过URL下载文件
+    downloadByUrl(url, fileName) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+
+    // 播放视频（打开新窗口）
+    playVideo(item) {
+      const videoUrl = this.getFirstFile(item.fileUrl);
+      const fullUrl = this.getFilePath(videoUrl);
+      window.open(
+        this.$router.resolve({
+          name: 'CollectionMultimediaPlay',
+          query: {url: encodeURIComponent(fullUrl), name: item.name}
+        }).href,
+        '_blank'
+      );
+    },
+
     handleCollect() {
       addCollect({targetId: this.id, type: '2'}).then(res => {
         this.isCollect = !this.isCollect;
@@ -359,6 +527,8 @@ export default {
 
 // 基础信息面板
 .info-panel {
+  max-width: 80%;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 30px;
@@ -417,6 +587,154 @@ export default {
   }
 }
 
+// 多媒体列表样式
+.multimedia-section {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 20px 40px;
+
+  .section-heading {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1976d2;
+    margin: 0 0 24px 0;
+    padding-left: 16px;
+    border-left: 4px solid #1976d2;
+  }
+
+  .multimedia-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .multimedia-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #eee;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .multimedia-preview {
+      position: relative;
+      width: 100%;
+      height: 160px;
+      overflow: hidden;
+      background: #f5f5f5;
+
+      .image-only {
+        width: 100%;
+        height: 100%;
+
+        :deep(.image-preview) {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .audio-placeholder,
+      .video-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        i {
+          font-size: 40px;
+          margin-bottom: 8px;
+        }
+
+        span {
+          font-size: 13px;
+          opacity: 0.9;
+        }
+      }
+
+      .audio-placeholder {
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        color: #2e7d32;
+
+        &:hover {
+          background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
+        }
+      }
+
+      .video-placeholder {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        color: #e65100;
+
+        &:hover {
+          background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+        }
+      }
+
+      .file-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #eceff1 0%, #cfd8dc 100%);
+        color: #546e7a;
+
+        i {
+          font-size: 40px;
+          margin-bottom: 8px;
+        }
+
+        span {
+          font-size: 13px;
+        }
+      }
+    }
+
+    .multimedia-info {
+      padding: 12px;
+
+      .multimedia-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin: 0 0 8px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .multimedia-tags {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .el-tag {
+          flex-shrink: 0;
+        }
+
+        .download-btn {
+          padding: 0;
+          font-size: 12px;
+          color: #1976d2;
+
+          &:hover {
+            color: #1565c0;
+          }
+        }
+      }
+    }
+  }
+}
+
 // 商品列表样式
 .goods-section {
   max-width: 100%;
@@ -432,11 +750,11 @@ export default {
     border-left: 4px solid #1976d2;
   }
 
-    .goods-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-    }
+  .goods-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
 
   .goods-card {
     background: #fff;
@@ -541,6 +859,30 @@ export default {
   .info-panel {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
+  }
+
+  .multimedia-section {
+    max-width: 100%;
+    padding: 0 16px 30px;
+
+    .multimedia-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .multimedia-card {
+      .multimedia-preview {
+        height: 140px;
+
+        .audio-placeholder,
+        .video-placeholder,
+        .file-placeholder {
+          i {
+            font-size: 36px;
+          }
+        }
+      }
+    }
   }
 }
 </style>

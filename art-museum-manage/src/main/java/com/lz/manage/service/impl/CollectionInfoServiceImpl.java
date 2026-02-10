@@ -9,11 +9,9 @@ import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.CollectMapper;
 import com.lz.manage.mapper.CollectionInfoMapper;
+import com.lz.manage.mapper.CollectionMultimediaMapper;
 import com.lz.manage.mapper.GoodsMapper;
-import com.lz.manage.model.domain.Category;
-import com.lz.manage.model.domain.Collect;
-import com.lz.manage.model.domain.CollectionInfo;
-import com.lz.manage.model.domain.Goods;
+import com.lz.manage.model.domain.*;
 import com.lz.manage.model.dto.collectionInfo.CollectionInfoQuery;
 import com.lz.manage.model.enums.CollectTypeEnum;
 import com.lz.manage.model.enums.CollectionStatusEnum;
@@ -52,6 +50,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
 
     @Resource
     private GoodsMapper goodsMapper;
+
+    @Resource
+    private CollectionMultimediaMapper collectionMultimediaMapper;
 
     //region mybatis代码
 
@@ -211,6 +212,13 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
         goods.setStatus(GoodsStatusEnum.GOODS_STATUS_1.getValue());
         List<Goods> goodsList = goodsMapper.selectGoodsList(goods);
         collectionInfoDetailVo.setGoodsList(goodsList);
+
+        //查询媒体
+        CollectionMultimedia media = new CollectionMultimedia();
+        media.setCollectionId(id);
+        media.setStatus(CollectionStatusEnum.COLLECTION_STATUS_1.getValue());
+        List<CollectionMultimedia> mediaList = collectionMultimediaMapper.selectCollectionMultimediaList(media);
+        collectionInfoDetailVo.setMultimediaList(mediaList);
 
         return collectionInfoDetailVo;
     }
