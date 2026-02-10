@@ -7,10 +7,18 @@ import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.mapper.CollectMapper;
 import com.lz.manage.mapper.CollectionInfoMapper;
+import com.lz.manage.mapper.GoodsMapper;
 import com.lz.manage.model.domain.Category;
+import com.lz.manage.model.domain.Collect;
 import com.lz.manage.model.domain.CollectionInfo;
+import com.lz.manage.model.domain.Goods;
 import com.lz.manage.model.dto.collectionInfo.CollectionInfoQuery;
+import com.lz.manage.model.enums.CollectTypeEnum;
+import com.lz.manage.model.enums.CollectionStatusEnum;
+import com.lz.manage.model.enums.GoodsStatusEnum;
+import com.lz.manage.model.vo.collectionInfo.CollectionInfoDetailVo;
 import com.lz.manage.model.vo.collectionInfo.CollectionInfoVo;
 import com.lz.manage.service.ICategoryService;
 import com.lz.manage.service.ICollectionInfoService;
@@ -38,6 +46,12 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
 
     @Resource
     private ICategoryService categoryService;
+
+    @Resource
+    private CollectMapper collectMapper;
+
+    @Resource
+    private GoodsMapper goodsMapper;
 
     //region mybatis代码
 
@@ -168,6 +182,37 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
             return Collections.emptyList();
         }
         return collectionInfoList.stream().map(CollectionInfoVo::objToVo).collect(Collectors.toList());
+    }
+
+    @Override
+    public CollectionInfoDetailVo selectCollectionInfoDetailById(Long id) {
+        //查询藏品信息
+        CollectionInfo collectionInfo = collectionInfoMapper.selectCollectionInfoById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(collectionInfo), "藏品信息不存在");
+        //如果不是正常的
+        ThrowUtils.throwIf(!CollectionStatusEnum.COLLECTION_STATUS_1.getValue().equals(collectionInfo.getStatus()), "藏品信息当前不可见");
+        CollectionInfoDetailVo collectionInfoDetailVo = CollectionInfoDetailVo.objToVo(collectionInfo);
+        //查询分类
+        Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
+        if (StringUtils.isNotNull(category)) {
+            collectionInfoDetailVo.setCategoryName(category.getName());
+        }
+        //查询是否收藏
+        Collect collect = new Collect();
+        collect.setUserId(SecurityUtils.getUserId());
+        collect.setType(CollectTypeEnum.COLLECT_TYPE_2.getValue());
+        collect.setTargetId(id);
+        List<Collect> collects = collectMapper.selectCollectList(collect);
+        collectionInfoDetailVo.setIsCollect(StringUtils.isNotEmpty(collects));
+
+        //查询商品
+        Goods goods = new Goods();
+        goods.setCollectionId(id);
+        goods.setStatus(GoodsStatusEnum.GOODS_STATUS_1.getValue());
+        List<Goods> goodsList = goodsMapper.selectGoodsList(goods);
+        collectionInfoDetailVo.setGoodsList(goodsList);
+
+        return collectionInfoDetailVo;
     }
 
 }

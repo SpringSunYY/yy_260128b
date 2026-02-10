@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import {getCollectionInfo} from "@/api/manage/collectionInfo";
+import {getCollectionInfo, getCollectionInfoDetail} from "@/api/manage/collectionInfo";
 import ImagePreview from "@/components/ImagePreview/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
 
@@ -113,7 +113,7 @@ export default {
         return;
       }
       this.loading = true;
-      getCollectionInfo(id).then(response => {
+      getCollectionInfoDetail(id).then(response => {
         this.detail = response.data || {};
         this.loading = false;
 

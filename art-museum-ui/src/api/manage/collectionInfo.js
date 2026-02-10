@@ -17,6 +17,14 @@ export function getCollectionInfo(id) {
   })
 }
 
+//查询藏品信息详情
+export function getCollectionInfoDetail(id) {
+  return request({
+    url: '/manage/collectionInfo/detail/' + id,
+    method: 'get'
+  })
+}
+
 // 新增藏品信息
 export function addCollectionInfo(data) {
   return request({
