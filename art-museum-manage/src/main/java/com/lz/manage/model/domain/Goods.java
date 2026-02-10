@@ -31,8 +31,11 @@ public class Goods implements Serializable
     private Long id;
 
     /** 关联藏品 */
-    @Excel(name = "关联藏品")
+    @Excel(name = "关联藏品",type = Excel.Type.IMPORT)
     private Long collectionId;
+    @TableField(exist = false)
+    @Excel(name = "关联藏品",type = Excel.Type.EXPORT)
+    private String collectionName;
 
     /** 名称 */
     @Excel(name = "名称")
@@ -67,8 +70,11 @@ public class Goods implements Serializable
     private String remark;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人", type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "创建人", type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")

@@ -1,26 +1,25 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.GoodsMapper;
+import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.domain.Goods;
-import com.lz.manage.service.IGoodsService;
 import com.lz.manage.model.dto.goods.GoodsQuery;
 import com.lz.manage.model.vo.goods.GoodsVo;
+import com.lz.manage.service.ICollectionInfoService;
+import com.lz.manage.service.IGoodsService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 商品信息Service业务层处理
@@ -29,13 +28,19 @@ import com.lz.manage.model.vo.goods.GoodsVo;
  * @date 2026-02-09
  */
 @Service
-public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService
-{
+public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements IGoodsService {
 
     @Resource
     private GoodsMapper goodsMapper;
 
+    @Resource
+    private ICollectionInfoService collectionInfoService;
+
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询商品信息
      *
@@ -43,8 +48,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 商品信息
      */
     @Override
-    public Goods selectGoodsById(Long id)
-    {
+    public Goods selectGoodsById(Long id) {
         return goodsMapper.selectGoodsById(id);
     }
 
@@ -55,9 +59,19 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 商品信息
      */
     @Override
-    public List<Goods> selectGoodsList(Goods goods)
-    {
-        return goodsMapper.selectGoodsList(goods);
+    public List<Goods> selectGoodsList(Goods goods) {
+        List<Goods> goodsList = goodsMapper.selectGoodsList(goods);
+        for (Goods info : goodsList) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+            CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(info.getCollectionId());
+            if (StringUtils.isNotNull(collectionInfo)) {
+                info.setCollectionName(collectionInfo.getName());
+            }
+        }
+        return goodsList;
     }
 
     /**
@@ -67,9 +81,14 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 结果
      */
     @Override
-    public int insertGoods(Goods goods)
-    {
+    public int insertGoods(Goods goods) {
+        //查询是否已存在
+        CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(goods.getCollectionId());
+        ThrowUtils.throwIf(StringUtils.isNull(collectionInfo), "藏品不存在");
         goods.setCreateTime(DateUtils.getNowDate());
+        goods.setUserId(SecurityUtils.getUserId());
+        goods.setSales(0L);
+        goods.setInventory(0L);
         return goodsMapper.insertGoods(goods);
     }
 
@@ -80,8 +99,11 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 结果
      */
     @Override
-    public int updateGoods(Goods goods)
-    {
+    public int updateGoods(Goods goods) {
+        //查询是否已存在
+        CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(goods.getCollectionId());
+        ThrowUtils.throwIf(StringUtils.isNull(collectionInfo), "藏品不存在");
+        goods.setUpdateBy(SecurityUtils.getUsername());
         goods.setUpdateTime(DateUtils.getNowDate());
         return goodsMapper.updateGoods(goods);
     }
@@ -93,8 +115,7 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 结果
      */
     @Override
-    public int deleteGoodsByIds(Long[] ids)
-    {
+    public int deleteGoodsByIds(Long[] ids) {
         return goodsMapper.deleteGoodsByIds(ids);
     }
 
@@ -105,13 +126,13 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
      * @return 结果
      */
     @Override
-    public int deleteGoodsById(Long id)
-    {
+    public int deleteGoodsById(Long id) {
         return goodsMapper.deleteGoodsById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<Goods> getQueryWrapper(GoodsQuery goodsQuery){
+    public QueryWrapper<Goods> getQueryWrapper(GoodsQuery goodsQuery) {
         QueryWrapper<Goods> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = goodsQuery.getParams();
@@ -119,19 +140,19 @@ public class GoodsServiceImpl extends ServiceImpl<GoodsMapper, Goods> implements
             params = new HashMap<>();
         }
         Long id = goodsQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         Long collectionId = goodsQuery.getCollectionId();
-        queryWrapper.eq( StringUtils.isNotNull(collectionId),"collection_id",collectionId);
+        queryWrapper.eq(StringUtils.isNotNull(collectionId), "collection_id", collectionId);
 
         String name = goodsQuery.getName();
-        queryWrapper.like(StringUtils.isNotEmpty(name) ,"name",name);
+        queryWrapper.like(StringUtils.isNotEmpty(name), "name", name);
 
         String status = goodsQuery.getStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(status) ,"status",status);
+        queryWrapper.eq(StringUtils.isNotEmpty(status), "status", status);
 
         Date createTime = goodsQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }
