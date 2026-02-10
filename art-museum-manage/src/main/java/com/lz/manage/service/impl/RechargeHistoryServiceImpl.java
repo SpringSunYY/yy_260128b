@@ -1,26 +1,23 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.RechargeHistoryMapper;
 import com.lz.manage.model.domain.RechargeHistory;
-import com.lz.manage.service.IRechargeHistoryService;
 import com.lz.manage.model.dto.rechargeHistory.RechargeHistoryQuery;
+import com.lz.manage.model.enums.AuditStatusEnum;
 import com.lz.manage.model.vo.rechargeHistory.RechargeHistoryVo;
+import com.lz.manage.service.IRechargeHistoryService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 充值记录Service业务层处理
@@ -29,13 +26,16 @@ import com.lz.manage.model.vo.rechargeHistory.RechargeHistoryVo;
  * @date 2026-02-09
  */
 @Service
-public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMapper, RechargeHistory> implements IRechargeHistoryService
-{
+public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMapper, RechargeHistory> implements IRechargeHistoryService {
 
     @Resource
     private RechargeHistoryMapper rechargeHistoryMapper;
 
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询充值记录
      *
@@ -43,8 +43,7 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 充值记录
      */
     @Override
-    public RechargeHistory selectRechargeHistoryById(Long id)
-    {
+    public RechargeHistory selectRechargeHistoryById(Long id) {
         return rechargeHistoryMapper.selectRechargeHistoryById(id);
     }
 
@@ -55,9 +54,15 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 充值记录
      */
     @Override
-    public List<RechargeHistory> selectRechargeHistoryList(RechargeHistory rechargeHistory)
-    {
-        return rechargeHistoryMapper.selectRechargeHistoryList(rechargeHistory);
+    public List<RechargeHistory> selectRechargeHistoryList(RechargeHistory rechargeHistory) {
+        List<RechargeHistory> rechargeHistories = rechargeHistoryMapper.selectRechargeHistoryList(rechargeHistory);
+        for (RechargeHistory info : rechargeHistories) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+        }
+        return rechargeHistories;
     }
 
     /**
@@ -67,8 +72,9 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 结果
      */
     @Override
-    public int insertRechargeHistory(RechargeHistory rechargeHistory)
-    {
+    public int insertRechargeHistory(RechargeHistory rechargeHistory) {
+        rechargeHistory.setAuditStatus(AuditStatusEnum.AUDIT_STATUS_1.getValue());
+        rechargeHistory.setUserId(SecurityUtils.getUserId());
         rechargeHistory.setCreateTime(DateUtils.getNowDate());
         return rechargeHistoryMapper.insertRechargeHistory(rechargeHistory);
     }
@@ -80,8 +86,8 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 结果
      */
     @Override
-    public int updateRechargeHistory(RechargeHistory rechargeHistory)
-    {
+    public int updateRechargeHistory(RechargeHistory rechargeHistory) {
+        rechargeHistory.setUpdateBy(SecurityUtils.getUsername());
         rechargeHistory.setUpdateTime(DateUtils.getNowDate());
         return rechargeHistoryMapper.updateRechargeHistory(rechargeHistory);
     }
@@ -93,8 +99,7 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 结果
      */
     @Override
-    public int deleteRechargeHistoryByIds(Long[] ids)
-    {
+    public int deleteRechargeHistoryByIds(Long[] ids) {
         return rechargeHistoryMapper.deleteRechargeHistoryByIds(ids);
     }
 
@@ -105,13 +110,13 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 结果
      */
     @Override
-    public int deleteRechargeHistoryById(Long id)
-    {
+    public int deleteRechargeHistoryById(Long id) {
         return rechargeHistoryMapper.deleteRechargeHistoryById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<RechargeHistory> getQueryWrapper(RechargeHistoryQuery rechargeHistoryQuery){
+    public QueryWrapper<RechargeHistory> getQueryWrapper(RechargeHistoryQuery rechargeHistoryQuery) {
         QueryWrapper<RechargeHistory> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = rechargeHistoryQuery.getParams();
@@ -119,22 +124,22 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
             params = new HashMap<>();
         }
         Long id = rechargeHistoryQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         Long userId = rechargeHistoryQuery.getUserId();
-        queryWrapper.eq( StringUtils.isNotNull(userId),"user_id",userId);
+        queryWrapper.eq(StringUtils.isNotNull(userId), "user_id", userId);
 
-        Long auditStatus = rechargeHistoryQuery.getAuditStatus();
-        queryWrapper.eq( StringUtils.isNotNull(auditStatus),"audit_status",auditStatus);
+        String auditStatus = rechargeHistoryQuery.getAuditStatus();
+        queryWrapper.eq(StringUtils.isNotNull(auditStatus), "audit_status", auditStatus);
 
         String auditBy = rechargeHistoryQuery.getAuditBy();
-        queryWrapper.like(StringUtils.isNotEmpty(auditBy) ,"audit_by",auditBy);
+        queryWrapper.like(StringUtils.isNotEmpty(auditBy), "audit_by", auditBy);
 
         Date auditTime = rechargeHistoryQuery.getAuditTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginAuditTime"))&&StringUtils.isNotNull(params.get("endAuditTime")),"audit_time",params.get("beginAuditTime"),params.get("endAuditTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginAuditTime")) && StringUtils.isNotNull(params.get("endAuditTime")), "audit_time", params.get("beginAuditTime"), params.get("endAuditTime"));
 
         Date createTime = rechargeHistoryQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

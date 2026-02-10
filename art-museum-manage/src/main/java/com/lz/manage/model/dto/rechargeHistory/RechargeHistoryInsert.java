@@ -1,11 +1,13 @@
 package com.lz.manage.model.dto.rechargeHistory;
 
-import java.io.Serializable;
-import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lz.manage.model.domain.RechargeHistory;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
-import com.lz.manage.model.domain.RechargeHistory;
+
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * 充值记录Vo对象 tb_recharge_history
  *
@@ -13,31 +15,49 @@ import com.lz.manage.model.domain.RechargeHistory;
  * @date 2026-02-09
  */
 @Data
-public class RechargeHistoryInsert implements Serializable
-{
+public class RechargeHistoryInsert implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 用户 */
+    /**
+     * 用户
+     */
     private Long userId;
 
-    /** 充值价格 */
+    /**
+     * 充值价格
+     */
     private Long rechargePrice;
 
-    /** 充值凭证 */
+    /**
+     * 充值凭证
+     */
     private String rechargeVoucher;
 
-    /** 审核状态 */
-    private Long auditStatus;
+    /**
+     * 审核状态
+     */
+    private String auditStatus;
 
-    /** 审核人 */
+    /**
+     * 审核人
+     */
     private String auditBy;
 
-    /** 审核时间 */
+    /**
+     * 审核时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date auditTime;
 
-    /** 审核原因 */
+    /**
+     * 审核原因
+     */
     private String auditDesc;
+
+    /**
+     * 备注
+     */
+    private String remark;
 
     /**
      * 对象转封装类

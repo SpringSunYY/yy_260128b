@@ -31,8 +31,11 @@ public class RechargeHistory implements Serializable
     private Long id;
 
     /** 用户 */
-    @Excel(name = "用户")
+    @Excel(name = "用户",type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "用户",type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 充值价格 */
     @Excel(name = "充值价格")
@@ -44,7 +47,7 @@ public class RechargeHistory implements Serializable
 
     /** 审核状态 */
     @Excel(name = "审核状态", dictType = "audit_status")
-    private Long auditStatus;
+    private String auditStatus;
 
     /** 审核人 */
     @Excel(name = "审核人")

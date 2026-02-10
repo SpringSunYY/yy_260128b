@@ -29,7 +29,7 @@ public class AfterSalesQuery implements Serializable
     private String type;
 
     /** 审核状态 */
-    private Long auditStatus;
+    private String auditStatus;
 
     /** 审核人 */
     private String auditBy;

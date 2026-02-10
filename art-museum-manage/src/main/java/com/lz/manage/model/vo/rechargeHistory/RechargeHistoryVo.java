@@ -25,6 +25,7 @@ public class RechargeHistoryVo implements Serializable
 
     /** 用户 */
     private Long userId;
+    private String userName;
 
     /** 充值价格 */
     private Long rechargePrice;
@@ -33,7 +34,7 @@ public class RechargeHistoryVo implements Serializable
     private String rechargeVoucher;
 
     /** 审核状态 */
-    private Long auditStatus;
+    private String auditStatus;
 
     /** 审核人 */
     private String auditBy;

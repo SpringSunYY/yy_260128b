@@ -124,7 +124,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
         String type = afterSalesQuery.getType();
         queryWrapper.eq(StringUtils.isNotEmpty(type) ,"type",type);
 
-        Long auditStatus = afterSalesQuery.getAuditStatus();
+        String auditStatus = afterSalesQuery.getAuditStatus();
         queryWrapper.eq( StringUtils.isNotNull(auditStatus),"audit_status",auditStatus);
 
         String auditBy = afterSalesQuery.getAuditBy();

@@ -52,7 +52,7 @@ public class AfterSales implements Serializable
 
     /** 审核状态 */
     @Excel(name = "审核状态", dictType = "audit_status")
-    private Long auditStatus;
+    private String auditStatus;
 
     /** 审核人 */
     @Excel(name = "审核人")

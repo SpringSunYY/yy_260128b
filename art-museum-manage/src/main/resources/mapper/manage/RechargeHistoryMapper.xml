@@ -1,40 +1,57 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.RechargeHistoryMapper">
-    
+
     <resultMap type="RechargeHistory" id="RechargeHistoryResult">
-        <result property="id"    column="id"    />
-        <result property="userId"    column="user_id"    />
-        <result property="rechargePrice"    column="recharge_price"    />
-        <result property="rechargeVoucher"    column="recharge_voucher"    />
-        <result property="auditStatus"    column="audit_status"    />
-        <result property="auditBy"    column="audit_by"    />
-        <result property="auditTime"    column="audit_time"    />
-        <result property="auditDesc"    column="audit_desc"    />
-        <result property="createTime"    column="create_time"    />
-        <result property="updateBy"    column="update_by"    />
-        <result property="updateTime"    column="update_time"    />
-        <result property="remark"    column="remark"    />
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="rechargePrice" column="recharge_price"/>
+        <result property="rechargeVoucher" column="recharge_voucher"/>
+        <result property="auditStatus" column="audit_status"/>
+        <result property="auditBy" column="audit_by"/>
+        <result property="auditTime" column="audit_time"/>
+        <result property="auditDesc" column="audit_desc"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
     </resultMap>
 
     <sql id="selectRechargeHistoryVo">
-        select id, user_id, recharge_price, recharge_voucher, audit_status, audit_by, audit_time, audit_desc, create_time, update_by, update_time, remark from tb_recharge_history
+        select id,
+               user_id,
+               recharge_price,
+               recharge_voucher,
+               audit_status,
+               audit_by,
+               audit_time,
+               audit_desc,
+               create_time,
+               update_by,
+               update_time,
+               remark
+        from tb_recharge_history
     </sql>
 
     <select id="selectRechargeHistoryList" parameterType="RechargeHistory" resultMap="RechargeHistoryResult">
         <include refid="selectRechargeHistoryVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="auditStatus != null "> and audit_status = #{auditStatus}</if>
-            <if test="auditBy != null  and auditBy != ''"> and audit_by like concat('%', #{auditBy}, '%')</if>
-            <if test="params.beginAuditTime != null and params.beginAuditTime != '' and params.endAuditTime != null and params.endAuditTime != ''"> and DATE_FORMAT(audit_time, '%Y-%m-%d') between #{params.beginAuditTime} and #{params.endAuditTime}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="auditStatus != null ">and audit_status = #{auditStatus}</if>
+            <if test="auditBy != null  and auditBy != ''">and audit_by like concat('%', #{auditBy}, '%')</if>
+            <if test="params.beginAuditTime != null and params.beginAuditTime != '' and params.endAuditTime != null and params.endAuditTime != ''">
+                and DATE_FORMAT(audit_time, '%Y-%m-%d') between #{params.beginAuditTime} and #{params.endAuditTime}
+            </if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
         </where>
+        order by create_time desc
     </select>
-    
+
     <select id="selectRechargeHistoryById" parameterType="Long" resultMap="RechargeHistoryResult">
         <include refid="selectRechargeHistoryVo"/>
         where id = #{id}
@@ -54,7 +71,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">update_by,</if>
             <if test="updateTime != null">update_time,</if>
             <if test="remark != null">remark,</if>
-         </trim>
+        </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="userId != null">#{userId},</if>
             <if test="rechargePrice != null">#{rechargePrice},</if>
@@ -67,7 +84,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="updateBy != null">#{updateBy},</if>
             <if test="updateTime != null">#{updateTime},</if>
             <if test="remark != null">#{remark},</if>
-         </trim>
+        </trim>
     </insert>
 
     <update id="updateRechargeHistory" parameterType="RechargeHistory">
@@ -89,11 +106,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </update>
 
     <delete id="deleteRechargeHistoryById" parameterType="Long">
-        delete from tb_recharge_history where id = #{id}
+        delete
+        from tb_recharge_history
+        where id = #{id}
     </delete>
 
     <delete id="deleteRechargeHistoryByIds" parameterType="String">
-        delete from tb_recharge_history where id in 
+        delete from tb_recharge_history where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
