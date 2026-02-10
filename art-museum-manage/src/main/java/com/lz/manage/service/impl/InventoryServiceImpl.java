@@ -1,26 +1,27 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
+import com.lz.manage.mapper.GoodsMapper;
 import com.lz.manage.mapper.InventoryMapper;
+import com.lz.manage.model.domain.Goods;
 import com.lz.manage.model.domain.Inventory;
-import com.lz.manage.service.IInventoryService;
 import com.lz.manage.model.dto.inventory.InventoryQuery;
+import com.lz.manage.model.enums.InventoryTypeEnum;
 import com.lz.manage.model.vo.inventory.InventoryVo;
+import com.lz.manage.service.IInventoryService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 库存信息Service业务层处理
@@ -29,13 +30,19 @@ import com.lz.manage.model.vo.inventory.InventoryVo;
  * @date 2026-02-09
  */
 @Service
-public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory> implements IInventoryService
-{
+public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory> implements IInventoryService {
 
     @Resource
     private InventoryMapper inventoryMapper;
 
+    @Resource
+    private GoodsMapper goodsMapper;
+
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询库存信息
      *
@@ -43,8 +50,7 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @return 库存信息
      */
     @Override
-    public Inventory selectInventoryById(Long id)
-    {
+    public Inventory selectInventoryById(Long id) {
         return inventoryMapper.selectInventoryById(id);
     }
 
@@ -55,9 +61,19 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @return 库存信息
      */
     @Override
-    public List<Inventory> selectInventoryList(Inventory inventory)
-    {
-        return inventoryMapper.selectInventoryList(inventory);
+    public List<Inventory> selectInventoryList(Inventory inventory) {
+        List<Inventory> inventories = inventoryMapper.selectInventoryList(inventory);
+        for (Inventory info : inventories) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+            Goods goods = goodsMapper.selectGoodsById(info.getGoodsId());
+            if (StringUtils.isNotNull(goods)) {
+                info.setGoodsName(goods.getName());
+            }
+        }
+        return inventories;
     }
 
     /**
@@ -66,9 +82,20 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @param inventory 库存信息
      * @return 结果
      */
+    @Transactional
     @Override
-    public int insertInventory(Inventory inventory)
-    {
+    public int insertInventory(Inventory inventory) {
+        //首先查询商品是否存在
+        Goods goods = goodsMapper.selectGoodsById(inventory.getGoodsId());
+        ThrowUtils.throwIf(StringUtils.isNull(goods), "商品不存在");
+        //如果是出库
+        if (InventoryTypeEnum.INVENTORY_TYPE_1.getValue().equals(inventory.getType())) {
+            goods.setInventory(goods.getInventory() - inventory.getNumbers());
+        } else {
+            goods.setInventory(goods.getInventory() + inventory.getNumbers());
+        }
+        goodsMapper.updateGoods(goods);
+        inventory.setUserId(SecurityUtils.getUserId());
         inventory.setCreateTime(DateUtils.getNowDate());
         return inventoryMapper.insertInventory(inventory);
     }
@@ -80,8 +107,8 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @return 结果
      */
     @Override
-    public int updateInventory(Inventory inventory)
-    {
+    public int updateInventory(Inventory inventory) {
+        inventory.setUpdateBy(SecurityUtils.getUsername());
         inventory.setUpdateTime(DateUtils.getNowDate());
         return inventoryMapper.updateInventory(inventory);
     }
@@ -93,8 +120,7 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @return 结果
      */
     @Override
-    public int deleteInventoryByIds(Long[] ids)
-    {
+    public int deleteInventoryByIds(Long[] ids) {
         return inventoryMapper.deleteInventoryByIds(ids);
     }
 
@@ -105,13 +131,13 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
      * @return 结果
      */
     @Override
-    public int deleteInventoryById(Long id)
-    {
+    public int deleteInventoryById(Long id) {
         return inventoryMapper.deleteInventoryById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<Inventory> getQueryWrapper(InventoryQuery inventoryQuery){
+    public QueryWrapper<Inventory> getQueryWrapper(InventoryQuery inventoryQuery) {
         QueryWrapper<Inventory> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = inventoryQuery.getParams();
@@ -119,22 +145,22 @@ public class InventoryServiceImpl extends ServiceImpl<InventoryMapper, Inventory
             params = new HashMap<>();
         }
         Long id = inventoryQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         Long goodsId = inventoryQuery.getGoodsId();
-        queryWrapper.eq( StringUtils.isNotNull(goodsId),"goods_id",goodsId);
+        queryWrapper.eq(StringUtils.isNotNull(goodsId), "goods_id", goodsId);
 
         String type = inventoryQuery.getType();
-        queryWrapper.eq(StringUtils.isNotEmpty(type) ,"type",type);
+        queryWrapper.eq(StringUtils.isNotEmpty(type), "type", type);
 
         String name = inventoryQuery.getName();
-        queryWrapper.like(StringUtils.isNotEmpty(name) ,"name",name);
+        queryWrapper.like(StringUtils.isNotEmpty(name), "name", name);
 
         Date inventory = inventoryQuery.getInventory();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginInventory"))&&StringUtils.isNotNull(params.get("endInventory")),"inventory",params.get("beginInventory"),params.get("endInventory"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginInventory")) && StringUtils.isNotNull(params.get("endInventory")), "inventory", params.get("beginInventory"), params.get("endInventory"));
 
         Date createTime = inventoryQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

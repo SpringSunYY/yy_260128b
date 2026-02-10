@@ -31,8 +31,11 @@ public class Inventory implements Serializable
     private Long id;
 
     /** 商品 */
-    @Excel(name = "商品")
+    @Excel(name = "商品",type = Excel.Type.IMPORT)
     private Long goodsId;
+    @TableField(exist = false)
+    @Excel(name = "商品",type = Excel.Type.EXPORT)
+    private String goodsName;
 
     /** 类型 */
     @Excel(name = "类型", dictType = "inventory_type")
@@ -60,8 +63,11 @@ public class Inventory implements Serializable
     private String remark;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人", type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "创建人", type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")

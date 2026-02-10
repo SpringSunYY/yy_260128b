@@ -1,14 +1,13 @@
 package com.lz.manage.model.vo.inventory;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-import com.lz.common.annotation.Excel;
-import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lz.manage.model.domain.Inventory;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * 库存信息Vo对象 tb_inventory
  *
@@ -16,51 +15,82 @@ import com.lz.manage.model.domain.Inventory;
  * @date 2026-02-09
  */
 @Data
-public class InventoryVo implements Serializable
-{
+public class InventoryVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     private Long id;
 
-    /** 商品 */
+    /**
+     * 商品
+     */
     private Long goodsId;
+    /**
+     * 商品名称
+     */
+    private String goodsName;
 
-    /** 类型 */
+    /**
+     * 类型
+     */
     private String type;
 
-    /** 名称 */
+    /**
+     * 名称
+     */
     private String name;
 
-    /** 价格 */
+    /**
+     * 价格
+     */
     private Long price;
 
-    /** 数量 */
+    /**
+     * 数量
+     */
     private Long numbers;
 
-    /** 时间 */
+    /**
+     * 时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date inventory;
 
-    /** 备注 */
+    /**
+     * 备注
+     */
     private String remark;
 
-    /** 创建人 */
+    /**
+     * 创建人
+     */
     private Long userId;
+    /**
+     * 创建人名称
+     */
+    private String userName;
 
-    /** 更新人 */
+    /**
+     * 更新人
+     */
     private String updateBy;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createTime;
 
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date updateTime;
 
 
-     /**
+    /**
      * 对象转封装类
      *
      * @param inventory Inventory实体对象
