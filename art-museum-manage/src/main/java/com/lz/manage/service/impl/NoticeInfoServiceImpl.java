@@ -1,26 +1,25 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.NoticeInfoMapper;
+import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.domain.NoticeInfo;
-import com.lz.manage.service.INoticeInfoService;
 import com.lz.manage.model.dto.noticeInfo.NoticeInfoQuery;
 import com.lz.manage.model.vo.noticeInfo.NoticeInfoVo;
+import com.lz.manage.service.ICollectionInfoService;
+import com.lz.manage.service.INoticeInfoService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 咨询信息Service业务层处理
@@ -29,13 +28,19 @@ import com.lz.manage.model.vo.noticeInfo.NoticeInfoVo;
  * @date 2026-02-10
  */
 @Service
-public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeInfo> implements INoticeInfoService
-{
+public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeInfo> implements INoticeInfoService {
 
     @Resource
     private NoticeInfoMapper noticeInfoMapper;
 
+    @Resource
+    private ICollectionInfoService collectionInfoService;
+
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询咨询信息
      *
@@ -43,8 +48,7 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 咨询信息
      */
     @Override
-    public NoticeInfo selectNoticeInfoById(Long id)
-    {
+    public NoticeInfo selectNoticeInfoById(Long id) {
         return noticeInfoMapper.selectNoticeInfoById(id);
     }
 
@@ -55,9 +59,21 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 咨询信息
      */
     @Override
-    public List<NoticeInfo> selectNoticeInfoList(NoticeInfo noticeInfo)
-    {
-        return noticeInfoMapper.selectNoticeInfoList(noticeInfo);
+    public List<NoticeInfo> selectNoticeInfoList(NoticeInfo noticeInfo) {
+        List<NoticeInfo> noticeInfos = noticeInfoMapper.selectNoticeInfoList(noticeInfo);
+        for (NoticeInfo info : noticeInfos) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+            if (StringUtils.isNotEmpty(info.getCollectionIds())) {
+                Set<String> collectionIds = StringUtils.str2Set(info.getCollectionIds(), ",");
+                List<CollectionInfo> list = collectionInfoService.list(new LambdaQueryWrapper<CollectionInfo>()
+                        .in(CollectionInfo::getId, collectionIds));
+                info.setCollectionNames(list.stream().map(CollectionInfo::getName).map(String::valueOf).collect(Collectors.joining(",")));
+            }
+        }
+        return noticeInfos;
     }
 
     /**
@@ -67,8 +83,10 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 结果
      */
     @Override
-    public int insertNoticeInfo(NoticeInfo noticeInfo)
-    {
+    public int insertNoticeInfo(NoticeInfo noticeInfo) {
+        //根据逗号分割in查询
+        initNoticeCollection(noticeInfo);
+        noticeInfo.setUserId(SecurityUtils.getUserId());
         noticeInfo.setCreateTime(DateUtils.getNowDate());
         return noticeInfoMapper.insertNoticeInfo(noticeInfo);
     }
@@ -80,10 +98,21 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 结果
      */
     @Override
-    public int updateNoticeInfo(NoticeInfo noticeInfo)
-    {
+    public int updateNoticeInfo(NoticeInfo noticeInfo) {
+        //根据逗号分割in查询
+        initNoticeCollection(noticeInfo);
+        noticeInfo.setUpdateBy(SecurityUtils.getUsername());
         noticeInfo.setUpdateTime(DateUtils.getNowDate());
         return noticeInfoMapper.updateNoticeInfo(noticeInfo);
+    }
+
+    private void initNoticeCollection(NoticeInfo noticeInfo) {
+        if (StringUtils.isNotEmpty(noticeInfo.getCollectionIds())) {
+            Set<String> collectionIds = StringUtils.str2Set(noticeInfo.getCollectionIds(), ",");
+            List<CollectionInfo> list = collectionInfoService.list(new LambdaQueryWrapper<CollectionInfo>()
+                    .in(CollectionInfo::getId, collectionIds));
+            noticeInfo.setCollectionIds(list.stream().map(CollectionInfo::getId).map(String::valueOf).collect(Collectors.joining(",")));
+        }
     }
 
     /**
@@ -93,8 +122,7 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 结果
      */
     @Override
-    public int deleteNoticeInfoByIds(Long[] ids)
-    {
+    public int deleteNoticeInfoByIds(Long[] ids) {
         return noticeInfoMapper.deleteNoticeInfoByIds(ids);
     }
 
@@ -105,13 +133,13 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
      * @return 结果
      */
     @Override
-    public int deleteNoticeInfoById(Long id)
-    {
+    public int deleteNoticeInfoById(Long id) {
         return noticeInfoMapper.deleteNoticeInfoById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<NoticeInfo> getQueryWrapper(NoticeInfoQuery noticeInfoQuery){
+    public QueryWrapper<NoticeInfo> getQueryWrapper(NoticeInfoQuery noticeInfoQuery) {
         QueryWrapper<NoticeInfo> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = noticeInfoQuery.getParams();
@@ -119,22 +147,22 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
             params = new HashMap<>();
         }
         Long id = noticeInfoQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String title = noticeInfoQuery.getTitle();
-        queryWrapper.like(StringUtils.isNotEmpty(title) ,"title",title);
+        queryWrapper.like(StringUtils.isNotEmpty(title), "title", title);
 
         String type = noticeInfoQuery.getType();
-        queryWrapper.eq(StringUtils.isNotEmpty(type) ,"type",type);
+        queryWrapper.eq(StringUtils.isNotEmpty(type), "type", type);
 
         String status = noticeInfoQuery.getStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(status) ,"status",status);
+        queryWrapper.eq(StringUtils.isNotEmpty(status), "status", status);
 
         String collectionIds = noticeInfoQuery.getCollectionIds();
-        queryWrapper.eq(StringUtils.isNotEmpty(collectionIds) ,"collection_ids",collectionIds);
+        queryWrapper.eq(StringUtils.isNotEmpty(collectionIds), "collection_ids", collectionIds);
 
         String updateBy = noticeInfoQuery.getUpdateBy();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginUpdateBy"))&&StringUtils.isNotNull(params.get("endUpdateBy")),"update_by",params.get("beginUpdateBy"),params.get("endUpdateBy"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginUpdateBy")) && StringUtils.isNotNull(params.get("endUpdateBy")), "update_by", params.get("beginUpdateBy"), params.get("endUpdateBy"));
 
         return queryWrapper;
     }

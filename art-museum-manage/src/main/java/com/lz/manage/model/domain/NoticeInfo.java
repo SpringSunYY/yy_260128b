@@ -47,9 +47,11 @@ public class NoticeInfo implements Serializable
     private String status;
 
     /** 关联藏品 */
-    @Excel(name = "关联藏品", dictType = "after_sales_type")
+    @Excel(name = "关联藏品", type = Excel.Type.IMPORT)
     private String collectionIds;
-
+    @TableField(exist = false)
+    @Excel(name = "关联藏品", type = Excel.Type.EXPORT)
+    private String collectionNames;
     /** 内容 */
     @Excel(name = "内容")
     private String content;
@@ -59,8 +61,11 @@ public class NoticeInfo implements Serializable
     private String remark;
 
     /** 创建人 */
-    @Excel(name = "创建人")
+    @Excel(name = "创建人", type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "创建人", type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 更新人 */
     @Excel(name = "更新人")

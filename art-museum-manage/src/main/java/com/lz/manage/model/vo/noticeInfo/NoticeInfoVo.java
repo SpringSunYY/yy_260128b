@@ -37,6 +37,7 @@ public class NoticeInfoVo implements Serializable
 
     /** 关联藏品 */
     private String collectionIds;
+    private String collectionNames;
 
     /** 内容 */
     private String content;
@@ -46,6 +47,7 @@ public class NoticeInfoVo implements Serializable
 
     /** 创建人 */
     private Long userId;
+    private String userName;
 
     /** 更新人 */
     private String updateBy;
