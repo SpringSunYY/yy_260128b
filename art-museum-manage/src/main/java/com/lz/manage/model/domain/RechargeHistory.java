@@ -1,6 +1,7 @@
 package com.lz.manage.model.domain;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Date;
 import java.util.Date;
@@ -39,7 +40,7 @@ public class RechargeHistory implements Serializable
 
     /** 充值价格 */
     @Excel(name = "充值价格")
-    private Long rechargePrice;
+    private BigDecimal rechargePrice;
 
     /** 充值凭证 */
     @Excel(name = "充值凭证")

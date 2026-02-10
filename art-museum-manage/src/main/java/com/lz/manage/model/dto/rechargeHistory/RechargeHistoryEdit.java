@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -31,7 +32,7 @@ public class RechargeHistoryEdit implements Serializable {
     /**
      * 充值价格
      */
-    private Long rechargePrice;
+    private BigDecimal rechargePrice;
 
     /**
      * 充值凭证

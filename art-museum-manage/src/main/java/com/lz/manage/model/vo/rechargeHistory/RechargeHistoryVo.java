@@ -1,6 +1,7 @@
 package com.lz.manage.model.vo.rechargeHistory;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -28,7 +29,7 @@ public class RechargeHistoryVo implements Serializable
     private String userName;
 
     /** 充值价格 */
-    private Long rechargePrice;
+    private BigDecimal rechargePrice;
 
     /** 充值凭证 */
     private String rechargeVoucher;

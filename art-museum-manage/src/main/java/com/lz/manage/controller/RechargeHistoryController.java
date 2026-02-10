@@ -105,6 +105,17 @@ public class RechargeHistoryController extends BaseController
     }
 
     /**
+     * 审核充值记录
+     */
+    @PreAuthorize("@ss.hasPermi('manage:rechargeHistory:audit')")
+    @Log(title = "充值记录", businessType = BusinessType.UPDATE)
+    @PutMapping("/audit")
+    public AjaxResult audit(@RequestBody RechargeHistoryEdit rechargeHistoryEdit){
+        RechargeHistory rechargeHistory = RechargeHistoryEdit.editToObj(rechargeHistoryEdit);
+        return toAjax(rechargeHistoryService.auditRechargeHistory(rechargeHistory));
+    }
+
+    /**
      * 删除充值记录
      */
     @PreAuthorize("@ss.hasPermi('manage:rechargeHistory:remove')")

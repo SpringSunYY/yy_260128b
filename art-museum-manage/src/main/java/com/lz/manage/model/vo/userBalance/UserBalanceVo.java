@@ -26,6 +26,7 @@ public class UserBalanceVo implements Serializable
 
     /** 用户 */
     private Long userId;
+    private String userName;
 
     /** 当前余额 */
     private BigDecimal balance;

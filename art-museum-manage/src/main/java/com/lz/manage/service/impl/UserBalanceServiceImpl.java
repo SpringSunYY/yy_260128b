@@ -1,27 +1,24 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.math.BigDecimal;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.UserBalanceMapper;
 import com.lz.manage.model.domain.UserBalance;
-import com.lz.manage.service.IUserBalanceService;
 import com.lz.manage.model.dto.userBalance.UserBalanceQuery;
 import com.lz.manage.model.vo.userBalance.UserBalanceVo;
+import com.lz.manage.service.IUserBalanceService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 用户余额Service业务层处理
@@ -30,13 +27,16 @@ import com.lz.manage.model.vo.userBalance.UserBalanceVo;
  * @date 2026-02-09
  */
 @Service
-public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserBalance> implements IUserBalanceService
-{
+public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserBalance> implements IUserBalanceService {
 
     @Resource
     private UserBalanceMapper userBalanceMapper;
 
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询用户余额
      *
@@ -44,8 +44,7 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 用户余额
      */
     @Override
-    public UserBalance selectUserBalanceById(Long id)
-    {
+    public UserBalance selectUserBalanceById(Long id) {
         return userBalanceMapper.selectUserBalanceById(id);
     }
 
@@ -56,9 +55,15 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 用户余额
      */
     @Override
-    public List<UserBalance> selectUserBalanceList(UserBalance userBalance)
-    {
-        return userBalanceMapper.selectUserBalanceList(userBalance);
+    public List<UserBalance> selectUserBalanceList(UserBalance userBalance) {
+        List<UserBalance> userBalances = userBalanceMapper.selectUserBalanceList(userBalance);
+        for (UserBalance info : userBalances) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+        }
+        return userBalances;
     }
 
     /**
@@ -68,8 +73,7 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 结果
      */
     @Override
-    public int insertUserBalance(UserBalance userBalance)
-    {
+    public int insertUserBalance(UserBalance userBalance) {
         userBalance.setCreateTime(DateUtils.getNowDate());
         return userBalanceMapper.insertUserBalance(userBalance);
     }
@@ -81,8 +85,7 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 结果
      */
     @Override
-    public int updateUserBalance(UserBalance userBalance)
-    {
+    public int updateUserBalance(UserBalance userBalance) {
         userBalance.setUpdateTime(DateUtils.getNowDate());
         return userBalanceMapper.updateUserBalance(userBalance);
     }
@@ -94,8 +97,7 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 结果
      */
     @Override
-    public int deleteUserBalanceByIds(Long[] ids)
-    {
+    public int deleteUserBalanceByIds(Long[] ids) {
         return userBalanceMapper.deleteUserBalanceByIds(ids);
     }
 
@@ -106,13 +108,13 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 结果
      */
     @Override
-    public int deleteUserBalanceById(Long id)
-    {
+    public int deleteUserBalanceById(Long id) {
         return userBalanceMapper.deleteUserBalanceById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<UserBalance> getQueryWrapper(UserBalanceQuery userBalanceQuery){
+    public QueryWrapper<UserBalance> getQueryWrapper(UserBalanceQuery userBalanceQuery) {
         QueryWrapper<UserBalance> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = userBalanceQuery.getParams();
@@ -120,10 +122,10 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
             params = new HashMap<>();
         }
         Long id = userBalanceQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         Long userId = userBalanceQuery.getUserId();
-        queryWrapper.eq( StringUtils.isNotNull(userId),"user_id",userId);
+        queryWrapper.eq(StringUtils.isNotNull(userId), "user_id", userId);
 
         return queryWrapper;
     }

@@ -158,6 +158,15 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-view"
+            @click="handleAudit(scope.row)"
+            v-if="scope.row.auditStatus!=='2'"
+            v-hasPermi="['manage:rechargeHistory:audit']"
+          >审核
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:rechargeHistory:edit']"
@@ -190,7 +199,7 @@
         <!--          <el-input v-model="form.userId" placeholder="请输入用户" />-->
         <!--        </el-form-item>-->
         <el-form-item label="充值价格" prop="rechargePrice">
-          <el-input v-model="form.rechargePrice" placeholder="请输入充值价格"/>
+          <el-input-number :min="0" :precision="2" v-model="form.rechargePrice" placeholder="请输入充值价格"/>
         </el-form-item>
         <el-form-item label="充值凭证" prop="rechargeVoucher">
           <image-upload v-model="form.rechargeVoucher"/>
@@ -226,6 +235,36 @@
         <el-button type="primary" @click="submitForm">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
+    </el-dialog> <!-- 添加或修改充值记录对话框 -->
+    <el-dialog :title="title" :visible.sync="openAudit" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="充值价格" prop="rechargePrice">
+          <el-input-number :min="0" :precision="2" v-model="form.rechargePrice" placeholder="请输入充值价格"/>
+        </el-form-item>
+        <el-form-item label="充值凭证" prop="rechargeVoucher">
+          <image-upload v-model="form.rechargeVoucher"/>
+        </el-form-item>
+        <el-form-item label="审核状态" prop="auditStatus">
+          <el-radio-group v-model="form.auditStatus">
+            <el-radio
+              v-for="dict in dict.type.audit_status"
+              :key="dict.value"
+              :label="dict.value"
+            >{{ dict.label }}
+            </el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="审核原因" prop="auditDesc">
+          <el-input v-model="form.auditDesc" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitFormAudit">确 定</el-button>
+        <el-button @click="cancelAudit">取 消</el-button>
+      </div>
     </el-dialog>
   </div>
 </template>
@@ -233,6 +272,7 @@
 <script>
 import {
   addRechargeHistory,
+  auditRechargeHistory,
   delRechargeHistory,
   getRechargeHistory,
   listRechargeHistory,
@@ -244,6 +284,7 @@ export default {
   dicts: ['audit_status'],
   data() {
     return {
+      openAudit: false,
       //表格展示列
       columns: [
         {key: 0, label: '编号', visible: true},
@@ -320,6 +361,25 @@ export default {
     this.getList();
   },
   methods: {
+    submitFormAudit() {
+      auditRechargeHistory(this.form).then(response => {
+        this.$modal.msgSuccess("审核成功");
+        this.openAudit = false;
+        this.getList();
+      });
+    },
+    // 取消审核按钮
+    cancelAudit() {
+      this.openAudit = false;
+      this.reset();
+    },
+    handleAudit(row) {
+      getRechargeHistory(row.id).then(response => {
+        this.form = response.data;
+        this.openAudit = true;
+        this.title = "审核充值记录";
+      });
+    },
     /** 查询充值记录列表 */
     getList() {
       this.loading = true;

@@ -35,6 +35,15 @@ export function updateRechargeHistory(data) {
   })
 }
 
+//审核充值记录
+export function auditRechargeHistory(data) {
+  return request({
+    url: '/manage/rechargeHistory/audit',
+    method: 'put',
+    data: data
+  })
+}
+
 // 删除充值记录
 export function delRechargeHistory(id) {
   return request({

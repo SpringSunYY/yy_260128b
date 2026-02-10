@@ -1,19 +1,24 @@
 package com.lz.manage.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.RechargeHistoryMapper;
 import com.lz.manage.model.domain.RechargeHistory;
+import com.lz.manage.model.domain.UserBalance;
 import com.lz.manage.model.dto.rechargeHistory.RechargeHistoryQuery;
 import com.lz.manage.model.enums.AuditStatusEnum;
 import com.lz.manage.model.vo.rechargeHistory.RechargeHistoryVo;
 import com.lz.manage.service.IRechargeHistoryService;
+import com.lz.manage.service.IUserBalanceService;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -34,6 +39,9 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
     @Resource
     private ISysUserService sysUserService;
 
+
+    @Resource
+    private IUserBalanceService userBalanceService;
     //region mybatis代码
 
     /**
@@ -87,8 +95,40 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      */
     @Override
     public int updateRechargeHistory(RechargeHistory rechargeHistory) {
+        //首先查询数据库中数据
+        RechargeHistory rechargeHistoryOld = selectRechargeHistoryById(rechargeHistory.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(rechargeHistoryOld), "充值记录不存在");
+        ThrowUtils.throwIf(rechargeHistoryOld.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue()),
+                "充值记录已经审核通过不可修改");
         rechargeHistory.setUpdateBy(SecurityUtils.getUsername());
         rechargeHistory.setUpdateTime(DateUtils.getNowDate());
+        return rechargeHistoryMapper.updateRechargeHistory(rechargeHistory);
+    }
+
+    @Transactional
+    @Override
+    public int auditRechargeHistory(RechargeHistory rechargeHistory) {
+        //首先查询数据库中数据
+        RechargeHistory rechargeHistoryOld = selectRechargeHistoryById(rechargeHistory.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(rechargeHistoryOld), "充值记录不存在");
+        ThrowUtils.throwIf(rechargeHistoryOld.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue()),
+                "充值记录已经审核通过不可修改");
+        rechargeHistory.setAuditBy(SecurityUtils.getUsername());
+        rechargeHistory.setAuditTime(DateUtils.getNowDate());
+        //如果是同意
+        if (rechargeHistory.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue())) {
+            //首先查询用户是否有余额
+            UserBalance userBalance = userBalanceService.getOne(new LambdaQueryWrapper<UserBalance>().eq(UserBalance::getUserId, rechargeHistoryOld.getUserId()));
+            if (StringUtils.isNull(userBalance)) {
+                userBalance = new UserBalance();
+                userBalance.setUserId(rechargeHistoryOld.getUserId());
+                userBalance.setBalance(rechargeHistoryOld.getRechargePrice());
+                userBalanceService.insertUserBalance(userBalance);
+            } else {
+                userBalance.setBalance(userBalance.getBalance().add(rechargeHistoryOld.getRechargePrice()));
+                userBalanceService.updateUserBalance(userBalance);
+            }
+        }
         return rechargeHistoryMapper.updateRechargeHistory(rechargeHistory);
     }
 

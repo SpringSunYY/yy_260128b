@@ -32,8 +32,11 @@ public class UserBalance implements Serializable
     private Long id;
 
     /** 用户 */
-    @Excel(name = "用户")
+    @Excel(name = "用户",type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "用户",type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 当前余额 */
     @Excel(name = "当前余额")

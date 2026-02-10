@@ -1,24 +1,25 @@
 package com.lz.manage.service;
 
-import java.util.List;
-import com.lz.manage.model.domain.RechargeHistory;
-import com.lz.manage.model.vo.rechargeHistory.RechargeHistoryVo;
-import com.lz.manage.model.dto.rechargeHistory.RechargeHistoryQuery;
-
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.lz.manage.model.domain.RechargeHistory;
+import com.lz.manage.model.dto.rechargeHistory.RechargeHistoryQuery;
+import com.lz.manage.model.vo.rechargeHistory.RechargeHistoryVo;
+
+import java.util.List;
+
 /**
  * 充值记录Service接口
- * 
+ *
  * @author YY
  * @date 2026-02-09
  */
-public interface IRechargeHistoryService extends IService<RechargeHistory>
-{
+public interface IRechargeHistoryService extends IService<RechargeHistory> {
     //region mybatis代码
+
     /**
      * 查询充值记录
-     * 
+     *
      * @param id 充值记录主键
      * @return 充值记录
      */
@@ -26,7 +27,7 @@ public interface IRechargeHistoryService extends IService<RechargeHistory>
 
     /**
      * 查询充值记录列表
-     * 
+     *
      * @param rechargeHistory 充值记录
      * @return 充值记录集合
      */
@@ -34,7 +35,7 @@ public interface IRechargeHistoryService extends IService<RechargeHistory>
 
     /**
      * 新增充值记录
-     * 
+     *
      * @param rechargeHistory 充值记录
      * @return 结果
      */
@@ -42,15 +43,23 @@ public interface IRechargeHistoryService extends IService<RechargeHistory>
 
     /**
      * 修改充值记录
-     * 
+     *
      * @param rechargeHistory 充值记录
      * @return 结果
      */
     public int updateRechargeHistory(RechargeHistory rechargeHistory);
 
     /**
+     * 充值审核
+     *
+     * @param rechargeHistory 充值记录
+     * @return 充值记录
+     */
+    int auditRechargeHistory(RechargeHistory rechargeHistory);
+
+    /**
      * 批量删除充值记录
-     * 
+     *
      * @param ids 需要删除的充值记录主键集合
      * @return 结果
      */
@@ -58,12 +67,13 @@ public interface IRechargeHistoryService extends IService<RechargeHistory>
 
     /**
      * 删除充值记录信息
-     * 
+     *
      * @param id 充值记录主键
      * @return 结果
      */
     public int deleteRechargeHistoryById(Long id);
     //endregion
+
     /**
      * 获取查询条件
      *
