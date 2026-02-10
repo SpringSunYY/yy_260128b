@@ -37,16 +37,16 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['manage:collect:add']"
-        >新增</el-button>
-      </el-col>
+      <!--      <el-col :span="1.5">-->
+      <!--        <el-button-->
+      <!--          type="primary"-->
+      <!--          plain-->
+      <!--          icon="el-icon-plus"-->
+      <!--          size="mini"-->
+      <!--          @click="handleAdd"-->
+      <!--          v-hasPermi="['manage:collect:add']"-->
+      <!--        >新增</el-button>-->
+      <!--      </el-col>-->
       <el-col :span="1.5">
         <el-button
           type="success"
@@ -56,7 +56,8 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['manage:collect:edit']"
-        >修改</el-button>
+        >修改
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -67,7 +68,8 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['manage:collect:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -77,42 +79,47 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['manage:collect:export']"
-        >导出</el-button>
+        >导出
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="collectList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id" />
-        <el-table-column label="类型" align="center" v-if="columns[1].visible" prop="type">
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
+      <el-table-column label="类型" align="center" v-if="columns[1].visible" prop="type">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.collect_type" :value="scope.row.type"/>
         </template>
       </el-table-column>
-        <el-table-column label="目标" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="targetId" />
-        <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible" prop="userId" />
-        <el-table-column label="创建时间" align="center" v-if="columns[4].visible" prop="createTime" width="180">
+      <el-table-column label="目标" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
+                       prop="targetName"/>
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
+                       prop="userName"/>
+      <el-table-column label="创建时间" align="center" v-if="columns[4].visible" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
-          <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-edit"
-            @click="handleUpdate(scope.row)"
-            v-hasPermi="['manage:collect:edit']"
-          >修改</el-button>
+<!--          <el-button-->
+<!--            size="mini"-->
+<!--            type="text"-->
+<!--            icon="el-icon-edit"-->
+<!--            @click="handleUpdate(scope.row)"-->
+<!--            v-hasPermi="['manage:collect:edit']"-->
+<!--          >修改-->
+<!--          </el-button>-->
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['manage:collect:remove']"
-          >删除</el-button>
+          >删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -128,22 +135,22 @@
     <!-- 添加或修改收藏信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="类型" prop="type">
-          <el-select v-model="form.type" placeholder="请选择类型">
-            <el-option
-              v-for="dict in dict.type.collect_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            ></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item label="目标" prop="targetId">
-          <el-input v-model="form.targetId" placeholder="请输入目标" />
-        </el-form-item>
-        <el-form-item label="创建人" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入创建人" />
-        </el-form-item>
+<!--        <el-form-item label="类型" prop="type">-->
+<!--          <el-select v-model="form.type" placeholder="请选择类型">-->
+<!--            <el-option-->
+<!--              v-for="dict in dict.type.collect_type"-->
+<!--              :key="dict.value"-->
+<!--              :label="dict.label"-->
+<!--              :value="dict.value"-->
+<!--            ></el-option>-->
+<!--          </el-select>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="目标" prop="targetId">-->
+<!--          <el-input v-model="form.targetId" placeholder="请输入目标"/>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="创建人" prop="userId">-->
+<!--          <el-input v-model="form.userId" placeholder="请输入创建人"/>-->
+<!--        </el-form-item>-->
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm">确 定</el-button>
@@ -154,7 +161,7 @@
 </template>
 
 <script>
-import { listCollect, getCollect, delCollect, addCollect, updateCollect } from "@/api/manage/collect";
+import {addCollect, delCollect, getCollect, listCollect, updateCollect} from "@/api/manage/collect";
 
 export default {
   name: "Collect",
@@ -163,12 +170,12 @@ export default {
     return {
       //表格展示列
       columns: [
-        { key: 0, label: '编号', visible: true },
-          { key: 1, label: '类型', visible: true },
-          { key: 2, label: '目标', visible: true },
-          { key: 3, label: '创建人', visible: true },
-          { key: 4, label: '创建时间', visible: true },
-        ],
+        {key: 0, label: '编号', visible: true},
+        {key: 1, label: '类型', visible: true},
+        {key: 2, label: '目标', visible: true},
+        {key: 3, label: '创建人', visible: true},
+        {key: 4, label: '创建时间', visible: true},
+      ],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -204,16 +211,16 @@ export default {
       // 表单校验
       rules: {
         type: [
-          { required: true, message: "类型不能为空", trigger: "change" }
+          {required: true, message: "类型不能为空", trigger: "change"}
         ],
         targetId: [
-          { required: true, message: "目标不能为空", trigger: "blur" }
+          {required: true, message: "目标不能为空", trigger: "blur"}
         ],
         userId: [
-          { required: true, message: "创建人不能为空", trigger: "blur" }
+          {required: true, message: "创建人不能为空", trigger: "blur"}
         ],
         createTime: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
+          {required: true, message: "创建时间不能为空", trigger: "blur"}
         ]
       }
     };
@@ -266,7 +273,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
@@ -308,12 +315,13 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除收藏信息编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除收藏信息编号为"' + ids + '"的数据项？').then(function () {
         return delCollect(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
+      }).catch(() => {
+      });
     },
     /** 导出按钮操作 */
     handleExport() {

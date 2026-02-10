@@ -6,7 +6,7 @@
         <el-carousel :interval="6000" arrow="always" height="80vh" trigger="click">
           <el-carousel-item v-for="(img, index) in imageList" :key="index">
             <div class="hero-image-wrapper">
-              <image-preview :src="img" fit="contain" />
+              <image-preview :src="img" fit="contain"/>
             </div>
           </el-carousel-item>
         </el-carousel>
@@ -24,7 +24,8 @@
       <div class="header-content">
         <h1 class="item-title">{{ detail.name }}</h1>
         <div class="header-right">
-          <el-button :type="isCollect ? 'warning' : 'primary'" :icon="isCollect ? 'el-icon-star-on' : 'el-icon-star-off'" @click="handleCollect">
+          <el-button :type="isCollect ? 'warning' : 'primary'"
+                     :icon="isCollect ? 'el-icon-star-on' : 'el-icon-star-off'" @click="handleCollect">
             {{ isCollect ? '已收藏' : '收藏' }}
           </el-button>
         </div>
@@ -85,9 +86,10 @@
 </template>
 
 <script>
-import {getCollectionInfo, getCollectionInfoDetail} from "@/api/manage/collectionInfo";
+import {getCollectionInfoDetail} from "@/api/manage/collectionInfo";
 import ImagePreview from "@/components/ImagePreview/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
+import {addCollect} from "@/api/manage/collect";
 
 export default {
   name: "CollectionInfoDetail",
@@ -98,7 +100,8 @@ export default {
       loading: true,
       detail: {},
       imageList: [],
-      isCollect: false
+      isCollect: false,
+      id: null
     };
   },
   created() {
@@ -112,6 +115,7 @@ export default {
         this.loading = false;
         return;
       }
+      this.id = id;
       this.loading = true;
       getCollectionInfoDetail(id).then(response => {
         this.detail = response.data || {};
@@ -128,8 +132,10 @@ export default {
       });
     },
     handleCollect() {
-      this.isCollect = !this.isCollect;
-      this.$modal.msgSuccess(this.isCollect ? "收藏成功" : "取消收藏成功");
+      addCollect({targetId: this.id, type: '2'}).then(res => {
+        this.isCollect = !this.isCollect;
+        this.$modal.msgSuccess(this.isCollect ? "收藏成功" : "取消收藏成功");
+      })
     }
   }
 };

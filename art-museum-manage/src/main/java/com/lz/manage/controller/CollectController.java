@@ -89,6 +89,7 @@ public class CollectController extends BaseController
     public AjaxResult add(@RequestBody CollectInsert collectInsert)
     {
         Collect collect = CollectInsert.insertToObj(collectInsert);
+        collect.setUserId(getUserId());
         return toAjax(collectService.insertCollect(collect));
     }
 

@@ -1,26 +1,25 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.CollectMapper;
 import com.lz.manage.model.domain.Collect;
-import com.lz.manage.service.ICollectService;
+import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.dto.collect.CollectQuery;
+import com.lz.manage.model.enums.CollectTypeEnum;
 import com.lz.manage.model.vo.collect.CollectVo;
+import com.lz.manage.service.ICollectService;
+import com.lz.manage.service.ICollectionInfoService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 收藏信息Service业务层处理
@@ -29,13 +28,18 @@ import com.lz.manage.model.vo.collect.CollectVo;
  * @date 2026-02-09
  */
 @Service
-public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> implements ICollectService
-{
+public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> implements ICollectService {
 
     @Resource
     private CollectMapper collectMapper;
 
+    @Resource
+    private ICollectionInfoService collectionInfoService;
+
+    @Resource
+    private ISysUserService sysUserService;
     //region mybatis代码
+
     /**
      * 查询收藏信息
      *
@@ -43,8 +47,7 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 收藏信息
      */
     @Override
-    public Collect selectCollectById(Long id)
-    {
+    public Collect selectCollectById(Long id) {
         return collectMapper.selectCollectById(id);
     }
 
@@ -55,9 +58,21 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 收藏信息
      */
     @Override
-    public List<Collect> selectCollectList(Collect collect)
-    {
-        return collectMapper.selectCollectList(collect);
+    public List<Collect> selectCollectList(Collect collect) {
+        List<Collect> collects = collectMapper.selectCollectList(collect);
+        for (Collect info : collects) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+            if (info.getType().equals(CollectTypeEnum.COLLECT_TYPE_2.getValue())) {
+                CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(info.getTargetId());
+                if (StringUtils.isNotNull(collectionInfo)) {
+                    info.setTargetName(collectionInfo.getName());
+                }
+            }
+        }
+        return collects;
     }
 
     /**
@@ -67,10 +82,19 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 结果
      */
     @Override
-    public int insertCollect(Collect collect)
-    {
-        collect.setCreateTime(DateUtils.getNowDate());
-        return collectMapper.insertCollect(collect);
+    public int insertCollect(Collect collect) {
+        //首先查询是否已收藏
+        LambdaQueryWrapper<Collect> queryWrapper = new LambdaQueryWrapper<Collect>()
+                .eq(Collect::getUserId, collect.getUserId())
+                .eq(Collect::getTargetId, collect.getTargetId())
+                .eq(Collect::getType, collect.getType());
+        Collect collectDb = collectMapper.selectOne(queryWrapper);
+        if (StringUtils.isNotNull(collectDb)) {
+            return collectMapper.delete(queryWrapper);
+        } else {
+            collect.setCreateTime(DateUtils.getNowDate());
+            return collectMapper.insertCollect(collect);
+        }
     }
 
     /**
@@ -80,8 +104,7 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 结果
      */
     @Override
-    public int updateCollect(Collect collect)
-    {
+    public int updateCollect(Collect collect) {
         return collectMapper.updateCollect(collect);
     }
 
@@ -92,8 +115,7 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 结果
      */
     @Override
-    public int deleteCollectByIds(Long[] ids)
-    {
+    public int deleteCollectByIds(Long[] ids) {
         return collectMapper.deleteCollectByIds(ids);
     }
 
@@ -104,13 +126,13 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @return 结果
      */
     @Override
-    public int deleteCollectById(Long id)
-    {
+    public int deleteCollectById(Long id) {
         return collectMapper.deleteCollectById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<Collect> getQueryWrapper(CollectQuery collectQuery){
+    public QueryWrapper<Collect> getQueryWrapper(CollectQuery collectQuery) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = collectQuery.getParams();
@@ -118,13 +140,13 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
             params = new HashMap<>();
         }
         Long id = collectQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         String type = collectQuery.getType();
-        queryWrapper.eq(StringUtils.isNotEmpty(type) ,"type",type);
+        queryWrapper.eq(StringUtils.isNotEmpty(type), "type", type);
 
         Date createTime = collectQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }
