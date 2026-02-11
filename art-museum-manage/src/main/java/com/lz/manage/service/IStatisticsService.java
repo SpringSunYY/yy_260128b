@@ -39,4 +39,10 @@ public interface IStatisticsService {
      * 订单金额统计
      */
     List<BaseStatisticsVo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest);
+
+    /**
+     * 订单统计
+     */
+    List<BaseStatisticsVo<Long>> orderStatistics(StatisticsRequest statisticsRequest);
+
 }

@@ -109,9 +109,9 @@ public class StatisticsServiceImpl implements IStatisticsService {
             } else if (statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_5.getValue())
                     || statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_6.getValue())
                     || statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_7.getValue())) {
-                resultMap.put("退货退款", statisticsPo.getValue()+ resultMap.get("退货退款"));
+                resultMap.put("退货退款", statisticsPo.getValue() + resultMap.get("退货退款"));
             } else {
-                resultMap.put("未成功", statisticsPo.getValue()+ resultMap.get("未成功"));
+                resultMap.put("未成功", statisticsPo.getValue() + resultMap.get("未成功"));
             }
         }
         return resultMap.entrySet().stream().map(entry -> {
@@ -124,7 +124,7 @@ public class StatisticsServiceImpl implements IStatisticsService {
 
     @Override
     public List<BaseStatisticsVo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest) {
-           statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
+        statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
         statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
         List<StatisticsPo<Float>> statisticsPos = statisticsMapper.orderAmountStatistics(statisticsRequest);
         if (statisticsPos.isEmpty()) {
@@ -132,6 +132,22 @@ public class StatisticsServiceImpl implements IStatisticsService {
         }
         return statisticsPos.stream().map(statisticsPo -> {
             BaseStatisticsVo<Float> baseStatisticsVo = new BaseStatisticsVo<>();
+            baseStatisticsVo.setName(statisticsPo.getName());
+            baseStatisticsVo.setValue(statisticsPo.getValue());
+            return baseStatisticsVo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BaseStatisticsVo<Long>> orderStatistics(StatisticsRequest statisticsRequest) {
+        statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
+        statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
+        List<StatisticsPo<Long>> statisticsPos = statisticsMapper.orderStatistics(statisticsRequest);
+        if (statisticsPos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return statisticsPos.stream().map(statisticsPo -> {
+            BaseStatisticsVo<Long> baseStatisticsVo = new BaseStatisticsVo<>();
             baseStatisticsVo.setName(statisticsPo.getName());
             baseStatisticsVo.setValue(statisticsPo.getValue());
             return baseStatisticsVo;

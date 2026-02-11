@@ -68,4 +68,13 @@ public class StatisticsController extends BaseController {
         return success(statisticsService.orderAmountStatistics(statisticsRequest));
     }
 
+    /**
+     * 订单分析
+     */
+    @PreAuthorize("@ss.hasPermi('manage:statistics:goods')")
+    @GetMapping("/order")
+    public AjaxResult orderStatistics(StatisticsRequest statisticsRequest) {
+        return success(statisticsService.orderStatistics(statisticsRequest));
+    }
+
 }

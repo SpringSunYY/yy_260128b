@@ -37,3 +37,12 @@ export function orderAmountStatistics(query) {
     params: query
   })
 }
+
+//订单统计
+export function orderStatistics(query) {
+  return request({
+    url: '/manage/statistics/order',
+    method: 'get',
+    params: query
+  })
+}

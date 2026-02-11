@@ -127,13 +127,13 @@
             <template #header>
               <div class="card-header">
                 <i class="el-icon-pie-chart"></i>
-                <span>{{ appointmentStatisticsName }}</span>
+                <span>{{ orderStatisticsName }}</span>
               </div>
             </template>
             <div class="chart-container">
               <BarAutoCarouselCharts
-                :chart-data="appointmentStatisticsData"
-                :chart-title="appointmentStatisticsName"
+                :chart-data="orderStatisticsData"
+                :chart-title="orderStatisticsData"
               />
             </div>
           </el-card>
@@ -162,7 +162,7 @@
 <script>
 import PieRoseCharts from "@/components/Echarts/PieRoseCharts.vue";
 import PieRoseHollowCharts from "@/components/Echarts/PieRoseHollowCharts.vue";
-import {orderAmountStatistics, orderRatioStatistics} from "@/api/manage/statistics";
+import {orderAmountStatistics, orderRatioStatistics, orderStatistics} from "@/api/manage/statistics";
 import BarLineZoomCharts from "@/components/Echarts/BarLineZoomCharts.vue";
 import dayjs from "dayjs";
 import BarAutoCarouselCharts from "@/components/Echarts/BarAutoCarouselCharts.vue";
@@ -187,6 +187,9 @@ export default {
       //订单每日金额
       orderAmountStatisticsData: [],
       orderAmountStatisticsName: "订单金额",
+      //每日订单
+      orderStatisticsData: [],
+      orderStatisticsName: "订单统计",
       collectTotal: 0,
       //藏品收藏
       collectionRankStatisticsData: [],
@@ -240,9 +243,18 @@ export default {
         }
       )
     },
+    //每日订单
+    getOrderStatisticsData() {
+      orderStatistics(this.query).then(
+        res => {
+          this.orderStatisticsData = res.data
+        }
+      )
+    },
     getStatistics() {
       this.getOrderRatioStatisticsData()
       this.getOrderAmountStatisticsData()
+      this.getOrderStatisticsData()
     },
     handleQuery() {
       if (this.dataRange.length > 0) {
