@@ -259,7 +259,7 @@ export default {
       // 评价列表相关
       evaluateList: [],
       evaluateLoading: false,
-      evaluateTotal: 0,
+      collectTotal: 0,
       evaluateQueryParams: {
         pageNum: 1,
         pageSize: 10,
