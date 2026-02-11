@@ -35,6 +35,15 @@ export function updateAfterSales(data) {
   })
 }
 
+//审核售后信息
+export function auditAfterSales(data) {
+  return request({
+    url: '/manage/afterSales/audit',
+    method: 'put',
+    data: data
+  })
+}
+
 // 删除售后信息
 export function delAfterSales(id) {
   return request({

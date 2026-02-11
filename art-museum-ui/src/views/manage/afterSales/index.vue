@@ -180,6 +180,14 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-edit"
+            @click="handleAudit(scope.row)"
+            v-hasPermi="['manage:afterSales:audit']"
+          >审核
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['manage:afterSales:remove']"
@@ -200,15 +208,30 @@
     <!-- 添加或修改售后信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="订单" prop="orderId">
-          <el-input v-model="form.orderId" placeholder="请输入订单"/>
+        <el-form-item label="售后类型" prop="type">
+          <el-select v-model="form.type" placeholder="请选择售后类型">
+            <el-option
+              v-for="dict in dict.type.after_sales_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            ></el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="商品" prop="goodsId">
-          <el-input v-model="form.goodsId" placeholder="请输入商品"/>
+        <el-form-item label="申请理由" prop="apply">
+          <editor :min-height="192" v-model="form.apply" type="textarea" placeholder="请输入内容"/>
         </el-form-item>
-        <el-form-item label="用户" prop="userId">
-          <el-input v-model="form.userId" placeholder="请输入用户"/>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
         </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :title="title" :visible.sync="openAudit" width="500px" append-to-body>
+      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="售后类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择售后类型">
             <el-option
@@ -227,21 +250,10 @@
             <el-radio
               v-for="dict in dict.type.audit_status"
               :key="dict.value"
-              :label="parseInt(dict.value)"
+              :label="dict.value"
             >{{ dict.label }}
             </el-radio>
           </el-radio-group>
-        </el-form-item>
-        <el-form-item label="审核人" prop="auditBy">
-          <el-input v-model="form.auditBy" placeholder="请输入审核人"/>
-        </el-form-item>
-        <el-form-item label="审核时间" prop="auditTime">
-          <el-date-picker clearable
-                          v-model="form.auditTime"
-                          type="date"
-                          value-format="yyyy-MM-dd"
-                          placeholder="请选择审核时间">
-          </el-date-picker>
         </el-form-item>
         <el-form-item label="审核原因" prop="auditDesc">
           <el-input v-model="form.auditDesc" type="textarea" placeholder="请输入内容"/>
@@ -251,7 +263,7 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button type="primary" @click="submitFormAudit">确 定</el-button>
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
@@ -259,13 +271,22 @@
 </template>
 
 <script>
-import {addAfterSales, delAfterSales, getAfterSales, listAfterSales, updateAfterSales} from "@/api/manage/afterSales";
+import {
+  addAfterSales,
+  auditAfterSales,
+  delAfterSales,
+  getAfterSales,
+  listAfterSales,
+  updateAfterSales
+} from "@/api/manage/afterSales";
 
 export default {
   name: "AfterSales",
   dicts: ['after_sales_type', 'audit_status'],
   data() {
     return {
+      //审核
+      openAudit: false,
       //表格展示列
       columns: [
         {key: 0, label: '编号', visible: true},
@@ -351,6 +372,22 @@ export default {
     this.getList();
   },
   methods: {
+    handleAudit(row) {
+      this.reset()
+      const id = row.id
+      getAfterSales(id).then(response => {
+        this.form = response.data;
+        this.openAudit = true;
+        this.title = "审核售后信息";
+      });
+    },
+    submitFormAudit() {
+      auditAfterSales(this.form).then(response => {
+        this.$modal.msgSuccess("审核成功");
+        this.openAudit = false;
+        this.getList();
+      });
+    },
     /** 查询售后信息列表 */
     getList() {
       this.loading = true;
@@ -372,6 +409,7 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
+      this.openAudit = false;
       this.reset();
     },
     // 表单重置

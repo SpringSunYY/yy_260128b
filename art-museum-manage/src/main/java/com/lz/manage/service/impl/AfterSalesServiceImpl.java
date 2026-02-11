@@ -9,16 +9,14 @@ import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.AfterSalesMapper;
-import com.lz.manage.model.domain.AfterSales;
-import com.lz.manage.model.domain.Goods;
-import com.lz.manage.model.domain.Order;
+import com.lz.manage.model.domain.*;
 import com.lz.manage.model.dto.afterSales.AfterSalesQuery;
+import com.lz.manage.model.enums.AfterSalesTypeEnum;
 import com.lz.manage.model.enums.AuditStatusEnum;
+import com.lz.manage.model.enums.InventoryTypeEnum;
 import com.lz.manage.model.enums.OrderStatusEnum;
 import com.lz.manage.model.vo.afterSales.AfterSalesVo;
-import com.lz.manage.service.IAfterSalesService;
-import com.lz.manage.service.IGoodsService;
-import com.lz.manage.service.IOrderService;
+import com.lz.manage.service.*;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +45,12 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
 
     @Resource
     private ISysUserService sysUserService;
+
+    @Resource
+    private IInventoryService inventoryService;
+
+    @Resource
+    private IRechargeHistoryService rechargeHistoryService;
 
     //region mybatis代码
 
@@ -98,7 +102,8 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
         ThrowUtils.throwIf(StringUtils.isNull(order), "订单不存在");
         ThrowUtils.throwIf(!order.getUserId().equals(SecurityUtils.getUserId()), "订单不存在错误");
         ThrowUtils.throwIf(order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_1.getValue()), "订单状态错误,尚未付款");
-
+        ThrowUtils.throwIf(order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_2.getValue())
+                && afterSales.getType().equals(AfterSalesTypeEnum.AFTER_SALES_TYPE_7.getValue()), "订单状态错误,尚未发货，不可退货");
         //如果这个订单已经有售后
         AfterSales afterSalesByOrder = afterSalesMapper.selectOne(new LambdaQueryWrapper<AfterSales>().eq(AfterSales::getOrderId, afterSales.getOrderId()));
         ThrowUtils.throwIf(StringUtils.isNotNull(afterSalesByOrder), "订单已经售后");
@@ -113,6 +118,60 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
         return afterSalesMapper.insertAfterSales(afterSales);
     }
 
+    @Override
+    public int auditAfterSales(AfterSales afterSales) {
+        AfterSales afterSalesDb = afterSalesMapper.selectAfterSalesById(afterSales.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(afterSalesDb), "售后信息不存在");
+        ThrowUtils.throwIf(afterSalesDb.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue()), "售后信息状态错误,不可以修改");
+
+        Order order = orderService.selectOrderById(afterSalesDb.getOrderId());
+        ThrowUtils.throwIf(StringUtils.isNull(order), "订单不存在");
+        afterSales.setAuditBy(SecurityUtils.getUsername());
+        afterSales.setAuditTime(DateUtils.getNowDate());
+        if (afterSales.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue())) {
+            //先查询商品
+            Goods goods = goodsService.selectGoodsById(afterSalesDb.getGoodsId());
+            ThrowUtils.throwIf(StringUtils.isNull(goods), "商品不存在");
+            //判断是退货还是退款
+            if (afterSales.getType().equals(AfterSalesTypeEnum.AFTER_SALES_TYPE_7.getValue())) {
+                goods.setInventory(goods.getInventory() + order.getNumbers());
+                goods.setSales(goods.getSales() - order.getNumbers());
+                //创建出入库记录
+                Inventory inventory = new Inventory();
+                inventory.setGoodsId(goods.getId());
+                inventory.setType(InventoryTypeEnum.INVENTORY_TYPE_2.getValue());
+                inventory.setName(StringUtils.format("订单号:{},售后入库", order.getId()));
+                inventory.setPrice(order.getTotalPrice());
+                inventory.setNumbers(order.getNumbers());
+                inventory.setInventory(new Date());
+                inventory.setRemark(StringUtils.format("订单号:{},售后入库", order.getId()));
+                inventory.setUserId(SecurityUtils.getUserId());
+                inventoryService.insertInventory(inventory);
+            } else {
+                //只是退款
+                goods.setSales(goods.getSales() - order.getNumbers());
+            }
+            if (goods.getSales() <= 0) {
+                goods.setSales(0L);
+            }
+            if (goods.getInventory() <= 0) {
+                goods.setInventory(0L);
+            }
+            //退款
+            RechargeHistory rechargeHistory = new RechargeHistory();
+            rechargeHistory.setUserId(order.getUserId());
+            rechargeHistory.setRechargePrice(order.getTotalPrice());
+            rechargeHistory.setRechargeVoucher("");
+            rechargeHistory.setRemark(StringUtils.format("订单号:{},售后退款", order.getId()));
+            rechargeHistoryService.insertRechargeHistory(rechargeHistory);
+            goodsService.updateGoods(goods);
+
+            order.setStatus(afterSales.getType());
+            orderService.updateById(order);
+        }
+        return afterSalesMapper.updateAfterSales(afterSales);
+    }
+
     /**
      * 修改售后信息
      *
@@ -121,6 +180,10 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
      */
     @Override
     public int updateAfterSales(AfterSales afterSales) {
+        //首先查询售后信息是否同意
+        AfterSales afterSalesDb = afterSalesMapper.selectAfterSalesById(afterSales.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(afterSalesDb), "售后信息不存在");
+        ThrowUtils.throwIf(afterSalesDb.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_2.getValue()), "售后信息状态错误,不可以修改");
         afterSales.setUpdateTime(DateUtils.getNowDate());
         return afterSalesMapper.updateAfterSales(afterSales);
     }

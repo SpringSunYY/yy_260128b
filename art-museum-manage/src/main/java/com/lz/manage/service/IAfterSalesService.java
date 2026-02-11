@@ -1,24 +1,25 @@
 package com.lz.manage.service;
 
-import java.util.List;
-import com.lz.manage.model.domain.AfterSales;
-import com.lz.manage.model.vo.afterSales.AfterSalesVo;
-import com.lz.manage.model.dto.afterSales.AfterSalesQuery;
-
-import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.lz.manage.model.domain.AfterSales;
+import com.lz.manage.model.dto.afterSales.AfterSalesQuery;
+import com.lz.manage.model.vo.afterSales.AfterSalesVo;
+
+import java.util.List;
+
 /**
  * 售后信息Service接口
- * 
+ *
  * @author YY
  * @date 2026-02-09
  */
-public interface IAfterSalesService extends IService<AfterSales>
-{
+public interface IAfterSalesService extends IService<AfterSales> {
     //region mybatis代码
+
     /**
      * 查询售后信息
-     * 
+     *
      * @param id 售后信息主键
      * @return 售后信息
      */
@@ -26,7 +27,7 @@ public interface IAfterSalesService extends IService<AfterSales>
 
     /**
      * 查询售后信息列表
-     * 
+     *
      * @param afterSales 售后信息
      * @return 售后信息集合
      */
@@ -34,15 +35,23 @@ public interface IAfterSalesService extends IService<AfterSales>
 
     /**
      * 新增售后信息
-     * 
+     *
      * @param afterSales 售后信息
      * @return 结果
      */
     public int insertAfterSales(AfterSales afterSales);
 
     /**
+     * 审核售后信息
+     *
+     * @param afterSales 售后信息
+     * @return 售后信息
+     */
+    int auditAfterSales(AfterSales afterSales);
+
+    /**
      * 修改售后信息
-     * 
+     *
      * @param afterSales 售后信息
      * @return 结果
      */
@@ -50,7 +59,7 @@ public interface IAfterSalesService extends IService<AfterSales>
 
     /**
      * 批量删除售后信息
-     * 
+     *
      * @param ids 需要删除的售后信息主键集合
      * @return 结果
      */
@@ -58,12 +67,13 @@ public interface IAfterSalesService extends IService<AfterSales>
 
     /**
      * 删除售后信息信息
-     * 
+     *
      * @param id 售后信息主键
      * @return 结果
      */
     public int deleteAfterSalesById(Long id);
     //endregion
+
     /**
      * 获取查询条件
      *
