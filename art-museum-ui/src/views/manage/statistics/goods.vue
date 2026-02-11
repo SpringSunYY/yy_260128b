@@ -95,13 +95,13 @@
             <template #header>
               <div class="card-header">
                 <i class="el-icon-pie-chart"></i>
-                <span>{{ placeRateStatisticsName }}</span>
+                <span>{{ orderRatioStatisticsName }}</span>
               </div>
             </template>
             <div class="chart-container">
               <PieRoseCharts
-                :chart-title="placeRateStatisticsName"
-                :chart-data="placeRateStatisticsData"
+                :chart-title="orderRatioStatisticsName"
+                :chart-data="orderRatioStatisticsData"
               />
             </div>
           </el-card>
@@ -162,7 +162,7 @@
 <script>
 import PieRoseCharts from "@/components/Echarts/PieRoseCharts.vue";
 import PieRoseHollowCharts from "@/components/Echarts/PieRoseHollowCharts.vue";
-import {collectRankStatistics, collectStatistics} from "@/api/manage/statistics";
+import {orderRatioStatistics} from "@/api/manage/statistics";
 import BarLineZoomCharts from "@/components/Echarts/BarLineZoomCharts.vue";
 import dayjs from "dayjs";
 import BarAutoCarouselCharts from "@/components/Echarts/BarAutoCarouselCharts.vue";
@@ -181,6 +181,9 @@ export default {
         startTime: defaultStart,
         endTime: defaultEnd
       },
+      //订单成交比例
+      orderRatioStatisticsData: [],
+      orderRatioStatisticsName: "订单成交比例",
       collectTotal: 0,
       //藏品收藏
       collectionRankStatisticsData: [],
@@ -218,47 +221,17 @@ export default {
         this.timer = null;
       }
     },
-    //藏品收藏
-    getCollectionStatisticsData() {
-      collectStatistics({
-        ...this.query,
-        type: '2'
-      }).then(res => {
-        this.collectionStatisticsData = res.data
-      })
+    //订单成交比例
+    getOrderRatioStatisticsData() {
+      orderRatioStatistics(this.query).then(
+        res => {
+          this.orderRatioStatisticsData = res.data
+        }
+      )
     },
-    //藏品排行
-    getCollectionRankStatisticsData() {
-      collectRankStatistics({
-        ...this.query,
-        type: '2'
-      }).then(res => {
-        this.collectionRankStatisticsData = res.data
-      })
-    },
-    //咨询收藏
-    getNoticeStatisticsData() {
-      collectStatistics({
-        ...this.query,
-        type: '1'
-      }).then(res => {
-        this.noticeStatisticsData = res.data
-      })
-    },
-    //咨询排行
-    getNoticeRankStatisticsData() {
-      collectRankStatistics({
-        ...this.query,
-        type: '1'
-      }).then(res => {
-        this.noticeRankStatisticsData = res.data
-      })
-    },
+
     getStatistics() {
-      this.getCollectionStatisticsData()
-      this.getNoticeStatisticsData()
-      this.getCollectionRankStatisticsData()
-      this.getNoticeRankStatisticsData()
+      this.getOrderRatioStatisticsData()
     },
     handleQuery() {
       if (this.dataRange.length > 0) {

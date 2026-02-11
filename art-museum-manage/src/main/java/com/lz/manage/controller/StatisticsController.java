@@ -47,7 +47,16 @@ public class StatisticsController extends BaseController {
     @PreAuthorize("@ss.hasPermi('manage:statistics:art')")
     @GetMapping("/collect/rank")
     public AjaxResult collectRank(StatisticsRequest statisticsRequest) {
-        return success(statisticsService.collectRank(statisticsRequest));
+        return success(statisticsService.collectRankStatistics(statisticsRequest));
+    }
+
+    /**
+     * 订单成交比例
+     */
+    @PreAuthorize("@ss.hasPermi('manage:statistics:goods')")
+    @GetMapping("/order/ratio")
+    public AjaxResult orderRatio(StatisticsRequest statisticsRequest) {
+        return success(statisticsService.orderRatioStatistics(statisticsRequest));
     }
 
 }

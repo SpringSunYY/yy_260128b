@@ -5,17 +5,18 @@ import com.lz.manage.mapper.StatisticsMapper;
 import com.lz.manage.model.domain.CollectionInfo;
 import com.lz.manage.model.domain.NoticeInfo;
 import com.lz.manage.model.enums.CollectTypeEnum;
+import com.lz.manage.model.enums.OrderStatusEnum;
 import com.lz.manage.model.statistics.dto.StatisticsRequest;
 import com.lz.manage.model.statistics.po.StatisticsPo;
 import com.lz.manage.model.statistics.vo.BaseStatisticsVo;
 import com.lz.manage.service.ICollectionInfoService;
 import com.lz.manage.service.INoticeInfoService;
 import com.lz.manage.service.IStatisticsService;
-import jdk.nashorn.api.scripting.ScriptUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,10 +62,10 @@ public class StatisticsServiceImpl implements IStatisticsService {
     }
 
     @Override
-    public List<BaseStatisticsVo<Long>> collectRank(StatisticsRequest statisticsRequest) {
+    public List<BaseStatisticsVo<Long>> collectRankStatistics(StatisticsRequest statisticsRequest) {
         statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
         statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
-        List<StatisticsPo<Long>> statisticsPos = statisticsMapper.collectRank(statisticsRequest);
+        List<StatisticsPo<Long>> statisticsPos = statisticsMapper.collectRankStatistics(statisticsRequest);
         if (statisticsPos.isEmpty()) {
             return Collections.emptyList();
         }
@@ -74,18 +75,49 @@ public class StatisticsServiceImpl implements IStatisticsService {
                 NoticeInfo noticeInfo = noticeInfoService.selectNoticeInfoById(Long.parseLong(statisticsPo.getName()));
                 if (StringUtils.isNotNull(noticeInfo)) {
                     baseStatisticsVo.setName(noticeInfo.getTitle());
-                }else {
+                } else {
                     baseStatisticsVo.setName(statisticsPo.getName());
                 }
-            }else {
+            } else {
                 CollectionInfo collectionInfo = collectionInfoService.selectCollectionInfoById(Long.parseLong(statisticsPo.getName()));
-                if (StringUtils.isNotNull(collectionInfo)){
+                if (StringUtils.isNotNull(collectionInfo)) {
                     baseStatisticsVo.setName(collectionInfo.getName());
-                }else {
+                } else {
                     baseStatisticsVo.setName(statisticsPo.getName());
                 }
             }
             baseStatisticsVo.setValue(statisticsPo.getValue());
+            return baseStatisticsVo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BaseStatisticsVo<Long>> orderRatioStatistics(StatisticsRequest statisticsRequest) {
+        statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
+        statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
+        List<StatisticsPo<Long>> statisticsPos = statisticsMapper.orderRatioStatistics(statisticsRequest);
+        if (statisticsPos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        HashMap<String, Long> resultMap = new HashMap<>();
+        resultMap.put("成功", 0L);
+        resultMap.put("未成功", 0L);
+        resultMap.put("退货退款", 0L);
+        for (StatisticsPo<Long> statisticsPo : statisticsPos) {
+            if (statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_3.getValue())) {
+                resultMap.put("成功", statisticsPo.getValue() + resultMap.get("成功"));
+            } else if (statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_5.getValue())
+                    || statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_6.getValue())
+                    || statisticsPo.getName().equals(OrderStatusEnum.ORDER_STATUS_7.getValue())) {
+                resultMap.put("退货退款", statisticsPo.getValue()+ resultMap.get("退货退款"));
+            } else {
+                resultMap.put("未成功", statisticsPo.getValue()+ resultMap.get("未成功"));
+            }
+        }
+        return resultMap.entrySet().stream().map(entry -> {
+            BaseStatisticsVo<Long> baseStatisticsVo = new BaseStatisticsVo<>();
+            baseStatisticsVo.setName(entry.getKey());
+            baseStatisticsVo.setValue(entry.getValue());
             return baseStatisticsVo;
         }).collect(Collectors.toList());
     }

@@ -8,5 +8,7 @@ import java.util.List;
 public interface StatisticsMapper {
     List<StatisticsPo<Long>> collectStatistics(StatisticsRequest statisticsRequest);
 
-    List<StatisticsPo<Long>> collectRank(StatisticsRequest statisticsRequest);
+    List<StatisticsPo<Long>> collectRankStatistics(StatisticsRequest statisticsRequest);
+
+    List<StatisticsPo<Long>> orderRatioStatistics(StatisticsRequest statisticsRequest);
 }

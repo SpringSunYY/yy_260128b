@@ -28,5 +28,7 @@ public interface IStatisticsService {
      * @param statisticsRequest
      * @return
      */
-    List<BaseStatisticsVo<Long>> collectRank(StatisticsRequest statisticsRequest);
+    List<BaseStatisticsVo<Long>> collectRankStatistics(StatisticsRequest statisticsRequest);
+
+    List<BaseStatisticsVo<Long>> orderRatioStatistics(StatisticsRequest statisticsRequest);
 }

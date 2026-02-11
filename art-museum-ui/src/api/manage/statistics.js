@@ -1,6 +1,7 @@
 import request from '@/utils/request'
+
 //收藏统计
-export function collectStatistics(query){
+export function collectStatistics(query) {
   return request({
     url: '/manage/statistics/collect',
     method: 'get',
@@ -10,9 +11,19 @@ export function collectStatistics(query){
 
 
 //收藏排行统计
-export function collectRankStatistics(query){
+export function collectRankStatistics(query) {
   return request({
     url: '/manage/statistics/collect/rank',
+    method: 'get',
+    params: query
+  })
+}
+
+
+//订单成交比例
+export function orderRatioStatistics(query) {
+  return request({
+    url: '/manage/statistics/order/ratio',
     method: 'get',
     params: query
   })
