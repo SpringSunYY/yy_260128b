@@ -30,5 +30,13 @@ public interface IStatisticsService {
      */
     List<BaseStatisticsVo<Long>> collectRankStatistics(StatisticsRequest statisticsRequest);
 
+    /**
+     * 订单成交比例
+     */
     List<BaseStatisticsVo<Long>> orderRatioStatistics(StatisticsRequest statisticsRequest);
+
+    /**
+     * 订单金额统计
+     */
+    List<BaseStatisticsVo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest);
 }

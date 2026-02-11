@@ -55,8 +55,17 @@ public class StatisticsController extends BaseController {
      */
     @PreAuthorize("@ss.hasPermi('manage:statistics:goods')")
     @GetMapping("/order/ratio")
-    public AjaxResult orderRatio(StatisticsRequest statisticsRequest) {
+    public AjaxResult orderRatioStatistics(StatisticsRequest statisticsRequest) {
         return success(statisticsService.orderRatioStatistics(statisticsRequest));
+    }
+
+    /**
+     * 订单金额
+     */
+    @PreAuthorize("@ss.hasPermi('manage:statistics:goods')")
+    @GetMapping("/order/amount")
+    public AjaxResult orderAmountStatistics(StatisticsRequest statisticsRequest) {
+        return success(statisticsService.orderAmountStatistics(statisticsRequest));
     }
 
 }

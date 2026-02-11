@@ -121,4 +121,20 @@ public class StatisticsServiceImpl implements IStatisticsService {
             return baseStatisticsVo;
         }).collect(Collectors.toList());
     }
+
+    @Override
+    public List<BaseStatisticsVo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest) {
+           statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
+        statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
+        List<StatisticsPo<Float>> statisticsPos = statisticsMapper.orderAmountStatistics(statisticsRequest);
+        if (statisticsPos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return statisticsPos.stream().map(statisticsPo -> {
+            BaseStatisticsVo<Float> baseStatisticsVo = new BaseStatisticsVo<>();
+            baseStatisticsVo.setName(statisticsPo.getName());
+            baseStatisticsVo.setValue(statisticsPo.getValue());
+            return baseStatisticsVo;
+        }).collect(Collectors.toList());
+    }
 }

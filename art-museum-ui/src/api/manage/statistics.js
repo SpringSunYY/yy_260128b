@@ -28,3 +28,12 @@ export function orderRatioStatistics(query) {
     params: query
   })
 }
+
+//订单每日金额
+export function orderAmountStatistics(query) {
+  return request({
+    url: '/manage/statistics/order/amount',
+    method: 'get',
+    params: query
+  })
+}

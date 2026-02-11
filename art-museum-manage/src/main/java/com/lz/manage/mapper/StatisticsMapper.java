@@ -11,4 +11,6 @@ public interface StatisticsMapper {
     List<StatisticsPo<Long>> collectRankStatistics(StatisticsRequest statisticsRequest);
 
     List<StatisticsPo<Long>> orderRatioStatistics(StatisticsRequest statisticsRequest);
+
+    List<StatisticsPo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest);
 }
