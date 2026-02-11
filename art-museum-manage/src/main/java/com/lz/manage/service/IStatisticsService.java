@@ -45,4 +45,5 @@ public interface IStatisticsService {
      */
     List<BaseStatisticsVo<Long>> orderStatistics(StatisticsRequest statisticsRequest);
 
+    List<BaseStatisticsVo<Float>> orderGoodsRankStatistics(StatisticsRequest statisticsRequest);
 }

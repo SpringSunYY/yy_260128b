@@ -46,3 +46,12 @@ export function orderStatistics(query) {
     params: query
   })
 }
+
+//商品金额排行
+export function orderGoodsRankStatistics(query) {
+  return request({
+    url: '/manage/statistics/order/goods/rank',
+    method: 'get',
+    params: query
+  })
+}

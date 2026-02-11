@@ -15,4 +15,6 @@ public interface StatisticsMapper {
     List<StatisticsPo<Float>> orderAmountStatistics(StatisticsRequest statisticsRequest);
 
     List<StatisticsPo<Long>> orderStatistics(StatisticsRequest statisticsRequest);
+
+    List<StatisticsPo<Float>> orderGoodsRankStatistics(StatisticsRequest statisticsRequest);
 }

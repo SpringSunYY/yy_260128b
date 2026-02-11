@@ -3,6 +3,7 @@ package com.lz.manage.service.impl;
 import com.lz.common.utils.StringUtils;
 import com.lz.manage.mapper.StatisticsMapper;
 import com.lz.manage.model.domain.CollectionInfo;
+import com.lz.manage.model.domain.Goods;
 import com.lz.manage.model.domain.NoticeInfo;
 import com.lz.manage.model.enums.CollectTypeEnum;
 import com.lz.manage.model.enums.OrderStatusEnum;
@@ -10,6 +11,7 @@ import com.lz.manage.model.statistics.dto.StatisticsRequest;
 import com.lz.manage.model.statistics.po.StatisticsPo;
 import com.lz.manage.model.statistics.vo.BaseStatisticsVo;
 import com.lz.manage.service.ICollectionInfoService;
+import com.lz.manage.service.IGoodsService;
 import com.lz.manage.service.INoticeInfoService;
 import com.lz.manage.service.IStatisticsService;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,9 @@ public class StatisticsServiceImpl implements IStatisticsService {
 
     @Resource
     private ICollectionInfoService collectionInfoService;
+
+    @Resource
+    private IGoodsService goodsService;
 
     /**
      * 收藏统计
@@ -151,6 +156,27 @@ public class StatisticsServiceImpl implements IStatisticsService {
             baseStatisticsVo.setName(statisticsPo.getName());
             baseStatisticsVo.setValue(statisticsPo.getValue());
             return baseStatisticsVo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BaseStatisticsVo<Float>> orderGoodsRankStatistics(StatisticsRequest statisticsRequest) {
+        statisticsRequest.setStartTime(statisticsRequest.getStartTime() + " 00:00:00");
+        statisticsRequest.setEndTime(statisticsRequest.getEndTime() + " 23:59:59");
+        List<StatisticsPo<Float>> statisticsPos = statisticsMapper.orderGoodsRankStatistics(statisticsRequest);
+        if (statisticsPos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return statisticsPos.stream().map(statisticsPo -> {
+            BaseStatisticsVo<Float> floatBaseStatisticsVo = new BaseStatisticsVo<>();
+            Goods goods = goodsService.selectGoodsById(Long.parseLong(statisticsPo.getName()));
+            if (StringUtils.isNotNull(goods)) {
+                floatBaseStatisticsVo.setName(goods.getName());
+            } else {
+                floatBaseStatisticsVo.setName(statisticsPo.getName());
+            }
+            floatBaseStatisticsVo.setValue(statisticsPo.getValue());
+            return floatBaseStatisticsVo;
         }).collect(Collectors.toList());
     }
 }

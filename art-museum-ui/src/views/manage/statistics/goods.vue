@@ -32,46 +32,33 @@
     <!-- 统计数据展示区域 -->
     <div class="stats-section">
       <el-row :gutter="20">
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="stats-card" shadow="hover">
             <div class="stats-content">
               <div class="stats-icon">
                 <i class="el-icon-data-line"></i>
               </div>
               <div class="stats-info">
-                <div class="stats-title">讲座数</div>
-                <div class="stats-value">{{ lectureTotal }}</div>
+                <div class="stats-title">总金额</div>
+                <div class="stats-value">{{ orderAmountTotal }}</div>
               </div>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="stats-card" shadow="hover">
             <div class="stats-content">
               <div class="stats-icon">
                 <i class="el-icon-data-line"></i>
               </div>
               <div class="stats-info">
-                <div class="stats-title">预约数</div>
-                <div class="stats-value">{{ appointmentTotal }}</div>
+                <div class="stats-title">总订单</div>
+                <div class="stats-value">{{ orderTotal }}</div>
               </div>
             </div>
           </el-card>
         </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card" shadow="hover">
-            <div class="stats-content">
-              <div class="stats-icon">
-                <i class="el-icon-data-line"></i>
-              </div>
-              <div class="stats-info">
-                <div class="stats-title">评论数</div>
-                <div class="stats-value">{{ evaluateTotal }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
+        <el-col :span="8">
           <el-card class="stats-card" shadow="hover">
             <div class="stats-content">
               <div class="stats-icon">
@@ -143,13 +130,13 @@
             <template #header>
               <div class="card-header">
                 <i class="el-icon-pie-chart"></i>
-                <span>{{ lectureRankStatisticsName }}</span>
+                <span>{{ orderGoodsRankStatisticsName }}</span>
               </div>
             </template>
             <div class="chart-container">
               <BarRankingZoomCharts
-                :chart-title="lectureRankStatisticsName"
-                :chart-data="lectureRankStatisticsData"
+                :chart-title="orderGoodsRankStatisticsName"
+                :chart-data="orderGoodsRankStatisticsData"
               />
             </div>
           </el-card>
@@ -162,7 +149,12 @@
 <script>
 import PieRoseCharts from "@/components/Echarts/PieRoseCharts.vue";
 import PieRoseHollowCharts from "@/components/Echarts/PieRoseHollowCharts.vue";
-import {orderAmountStatistics, orderRatioStatistics, orderStatistics} from "@/api/manage/statistics";
+import {
+  orderAmountStatistics,
+  orderGoodsRankStatistics,
+  orderRatioStatistics,
+  orderStatistics
+} from "@/api/manage/statistics";
 import BarLineZoomCharts from "@/components/Echarts/BarLineZoomCharts.vue";
 import dayjs from "dayjs";
 import BarAutoCarouselCharts from "@/components/Echarts/BarAutoCarouselCharts.vue";
@@ -184,27 +176,20 @@ export default {
       //订单成交比例
       orderRatioStatisticsData: [],
       orderRatioStatisticsName: "订单成交比例",
+      orderRatioTotal: 0,
+
       //订单每日金额
       orderAmountStatisticsData: [],
       orderAmountStatisticsName: "订单金额",
+      orderAmountTotal: 0,
       //每日订单
       orderStatisticsData: [],
       orderStatisticsName: "订单统计",
-      collectTotal: 0,
-      //藏品收藏
-      collectionRankStatisticsData: [],
-      collectionRankStatisticsName: "藏品排行",
-      //讲座
-      collectionStatisticsData: [],
-      collectionStatisticsName: "藏品统计",
-      collectionTotal: 0,
-      //讲座排行
-      noticeRankStatisticsData: [],
-      noticeRankStatisticsName: "咨询排行",
-      //预约
-      noticeStatisticsData: [],
-      noticeStatisticsName: "咨询分析",
-      noticeTotal: 0,
+      orderTotal: 0,
+      //商品金额排行
+      orderGoodsRankStatisticsData: [],
+      orderGoodsRankStatisticsName: "商品金额排行",
+
       dataRange: [defaultStart, defaultEnd],
     }
   },
@@ -240,6 +225,7 @@ export default {
       orderAmountStatistics(this.query).then(
         res => {
           this.orderAmountStatisticsData = res.data
+          this.orderAmountTotal = res.data.map(item => item.value).reduce((a, b) => a + b, 0)
         }
       )
     },
@@ -248,13 +234,21 @@ export default {
       orderStatistics(this.query).then(
         res => {
           this.orderStatisticsData = res.data
+          this.orderTotal = res.data.map(item => item.value).reduce((a, b) => a + b, 0)
         }
       )
+    },
+    //商品金额排行
+    getOrderGoodsRankStatisticsData() {
+      orderGoodsRankStatistics(this.query).then(res => {
+        this.orderGoodsRankStatisticsData = res.data
+      })
     },
     getStatistics() {
       this.getOrderRatioStatisticsData()
       this.getOrderAmountStatisticsData()
       this.getOrderStatisticsData()
+      this.getOrderGoodsRankStatisticsData()
     },
     handleQuery() {
       if (this.dataRange.length > 0) {

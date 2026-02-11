@@ -77,4 +77,13 @@ public class StatisticsController extends BaseController {
         return success(statisticsService.orderStatistics(statisticsRequest));
     }
 
+    /**
+     * 商品金额排行
+     */
+    @PreAuthorize("@ss.hasPermi('manage:statistics:goods')")
+    @GetMapping("/order/goods/rank")
+    public AjaxResult orderGoodsRankStatistics(StatisticsRequest statisticsRequest) {
+        return success(statisticsService.orderGoodsRankStatistics(statisticsRequest));
+    }
+
 }
