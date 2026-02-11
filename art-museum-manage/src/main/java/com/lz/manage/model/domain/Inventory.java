@@ -1,6 +1,7 @@
 package com.lz.manage.model.domain;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Date;
 import java.util.Date;
@@ -47,7 +48,7 @@ public class Inventory implements Serializable
 
     /** 价格 */
     @Excel(name = "价格")
-    private Long price;
+    private BigDecimal price;
 
     /** 数量 */
     @Excel(name = "数量")

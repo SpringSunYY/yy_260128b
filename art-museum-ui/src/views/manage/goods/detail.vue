@@ -33,6 +33,15 @@
         <span class="status-badge" :class="{ 'on-sale': detail.status === '1' }">
           {{ detail.status === '1' ? '在售' : '下架' }}
         </span>
+        <el-button
+          v-if="detail.status === '1'"
+          type="primary"
+          size="large"
+          icon="el-icon-shopping-cart-2"
+          @click="openBuyDialog"
+          class="buy-btn">
+          立即购买
+        </el-button>
       </div>
     </div>
 
@@ -41,7 +50,7 @@
       <!-- 关联藏品 -->
       <div class="related-collection" v-if="collectionInfo" @click="goCollectionDetail">
         <div class="collection-thumb">
-          <image-preview :src="collectionInfo.imageSrc" fit="cover" />
+          <image-preview :src="collectionInfo.imageSrc" fit="cover"/>
         </div>
         <div class="collection-info">
           <h4>相关藏品</h4>
@@ -61,12 +70,60 @@
     <div class="empty-state" v-else-if="!loading">
       <el-empty description="未找到商品信息"></el-empty>
     </div>
+
+    <!-- 购买对话框 -->
+    <el-dialog title="购买商品" :visible.sync="buyDialogVisible" width="600px" append-to-body>
+      <el-form :model="buyForm" label-width="80px">
+        <el-form-item label="商品名称">
+          <span>{{ detail.name }}</span>
+        </el-form-item>
+        <el-form-item label="商品价格">
+          <span style="color: #f5222d; font-size: 18px; font-weight: bold;">¥{{ detail.price }}</span>
+        </el-form-item>
+        <el-form-item label="选择地址" prop="addressId">
+          <el-select
+            v-model="buyForm.addressId"
+            placeholder="请选择收货地址"
+            style="width: 100%;"
+            filterable
+            remote
+            reserve-keyword
+            :remote-method="remoteGetAddress"
+            :loading="addressLoading">
+            <el-option
+              v-for="item in addressList"
+              :key="item.id"
+              :label="`${item.phone} | ${item.province}${item.city}${item.county}${item.address}`"
+              :value="item.id"/>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="购买数量" prop="numbers">
+          <el-input-number v-model="buyForm.numbers" :min="1" :max="detail.inventory || 999"
+                           controls-position="right"></el-input-number>
+          <span class="inventory-hint" v-if="detail.inventory">（库存：{{ detail.inventory }}件）</span>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="buyForm.remark" type="textarea" placeholder="请输入备注信息" rows="3"></el-input>
+        </el-form-item>
+        <el-form-item label="订单总价">
+          <span style="color: #f5222d; font-size: 20px; font-weight: bold;">¥{{
+              (detail.price * buyForm.numbers).toFixed(2)
+            }}</span>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="buyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitBuy">确认购买</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import {getGoods} from "@/api/manage/goods";
 import {getCollectionInfoDetail} from "@/api/manage/collectionInfo";
+import {addOrder} from "@/api/manage/order";
+import {listUserAddress} from "@/api/manage/userAddress";
 import ImagePreview from "@/components/ImagePreview/index.vue";
 
 export default {
@@ -77,7 +134,21 @@ export default {
       loading: true,
       detail: {},
       collectionInfo: null,
-      imageList: []
+      imageList: [],
+      // 购买对话框
+      buyDialogVisible: false,
+      buyForm: {
+        addressId: null,
+        numbers: 1,
+        remark: ''
+      },
+      // 地址选择相关
+      addressList: [],
+      addressLoading: false,
+      addressQuery: {
+        pageNum: 1,
+        pageSize: 100
+      }
     };
   },
   created() {
@@ -118,9 +189,65 @@ export default {
       if (this.collectionInfo && this.collectionInfo.id) {
         this.$router.push({
           name: 'CollectionInfoDetail',
-          query: { id: this.collectionInfo.id }
+          query: {id: this.collectionInfo.id}
         });
       }
+    },
+    // 打开购买对话框
+    openBuyDialog() {
+      this.buyForm = {
+        addressId: null,
+        numbers: 1,
+        remark: ''
+      };
+      this.loadAddressList();
+      this.buyDialogVisible = true;
+    },
+    // 加载地址列表
+    loadAddressList() {
+      this.addressLoading = true;
+      listUserAddress(this.addressQuery).then(response => {
+        this.addressList = response.rows || [];
+        this.addressLoading = false;
+      }).catch(() => {
+        this.addressLoading = false;
+      });
+    },
+    remoteGetAddress(keyword) {
+      this.addressQuery.province = keyword;
+      this.loadAddressList()
+    },
+    // 提交购买
+    submitBuy() {
+      // if (!this.buyForm.addressId) {
+      //   this.$message.warning('请选择收货地址');
+      //   return;
+      // }
+      if (this.buyForm.numbers < 1) {
+        this.$message.warning('购买数量必须大于0');
+        return;
+      }
+      if (this.detail.inventory && this.buyForm.numbers > this.detail.inventory) {
+        this.$message.warning(`库存不足，最大可购买${this.detail.inventory}件`);
+        return;
+      }
+
+      const orderData = {
+        goodsId: this.detail.id,
+        numbers: this.buyForm.numbers,
+        addressId: this.buyForm.addressId,
+        remark: this.buyForm.remark,
+        totalPrice: this.detail.price * this.buyForm.numbers
+      };
+
+      addOrder(orderData).then(response => {
+        this.$modal.msgSuccess('订单创建成功，请前往付款！');
+        this.buyDialogVisible = false;
+        // 可选：跳转到订单列表页
+        // this.$router.push({ name: 'Order' });
+      }).catch(error => {
+        console.error("创建订单失败", error);
+      });
     }
   }
 };
@@ -258,6 +385,7 @@ export default {
     margin-bottom: 20px;
     font-size: 14px;
     color: #666;
+    flex-wrap: wrap;
 
     .status-badge {
       padding: 4px 12px;
@@ -372,6 +500,27 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+// 购买按钮
+.buy-btn {
+  margin-left: 20px;
+  background-color: #1976d2;
+  border-color: #1976d2;
+  padding: 10px 30px;
+  font-size: 16px;
+  border-radius: 4px;
+
+  &:hover {
+    background-color: #1565c0;
+    border-color: #1565c0;
+  }
+}
+
+.inventory-hint {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #999;
 }
 
 // 响应式

@@ -1,27 +1,33 @@
 package com.lz.manage.service.impl;
 
-import java.util.*;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import javax.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.lz.common.utils.StringUtils;
-import java.math.BigDecimal;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.lz.common.utils.DateUtils;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.core.domain.entity.SysUser;
+import com.lz.common.utils.DateUtils;
+import com.lz.common.utils.SecurityUtils;
+import com.lz.common.utils.StringUtils;
+import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.OrderMapper;
+import com.lz.manage.model.domain.Goods;
 import com.lz.manage.model.domain.Order;
-import com.lz.manage.service.IOrderService;
+import com.lz.manage.model.domain.UserAddress;
+import com.lz.manage.model.domain.UserBalance;
 import com.lz.manage.model.dto.order.OrderQuery;
+import com.lz.manage.model.enums.GoodsStatusEnum;
+import com.lz.manage.model.enums.OrderStatusEnum;
+import com.lz.manage.model.enums.YesNoEnum;
 import com.lz.manage.model.vo.order.OrderVo;
+import com.lz.manage.service.IGoodsService;
+import com.lz.manage.service.IOrderService;
+import com.lz.manage.service.IUserAddressService;
+import com.lz.manage.service.IUserBalanceService;
+import com.lz.system.service.ISysUserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 订单信息Service业务层处理
@@ -30,13 +36,25 @@ import com.lz.manage.model.vo.order.OrderVo;
  * @date 2026-02-09
  */
 @Service
-public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements IOrderService
-{
+public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements IOrderService {
 
     @Resource
     private OrderMapper orderMapper;
 
+    @Resource
+    private IGoodsService goodsService;
+
+    @Resource
+    private IUserAddressService userAddressService;
+
+    @Resource
+    private IUserBalanceService userBalanceService;
+
+    @Resource
+    private ISysUserService sysUserService;
+
     //region mybatis代码
+
     /**
      * 查询订单信息
      *
@@ -44,8 +62,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 订单信息
      */
     @Override
-    public Order selectOrderById(Long id)
-    {
+    public Order selectOrderById(Long id) {
         return orderMapper.selectOrderById(id);
     }
 
@@ -56,9 +73,36 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 订单信息
      */
     @Override
-    public List<Order> selectOrderList(Order order)
-    {
-        return orderMapper.selectOrderList(order);
+    public List<Order> selectOrderList(Order order) {
+        List<Order> orders = orderMapper.selectOrderList(order);
+        for (Order info : orders) {
+            SysUser sysUser = sysUserService.selectUserById(info.getUserId());
+            if (StringUtils.isNotNull(sysUser)) {
+                info.setUserName(sysUser.getUserName());
+            }
+            Goods goods = goodsService.selectGoodsById(info.getGoodsId());
+            if (StringUtils.isNotNull(goods)) {
+                info.setGoodsName(goods.getName());
+            }
+            UserAddress userAddress = userAddressService.selectUserAddressById(info.getAddressId());
+            if (StringUtils.isNotNull(userAddress)) {
+                StringBuilder stringBuffer = new StringBuilder();
+                if (StringUtils.isNotEmpty(userAddress.getProvince())) {
+                    stringBuffer.append(userAddress.getProvince());
+                }
+                if (StringUtils.isNotEmpty(userAddress.getCity())) {
+                    stringBuffer.append(userAddress.getCity());
+                }
+                if (StringUtils.isNotEmpty(userAddress.getCounty())) {
+                    stringBuffer.append(userAddress.getCounty());
+                }
+                if (StringUtils.isNotEmpty(userAddress.getAddress())) {
+                    stringBuffer.append(userAddress.getAddress());
+                }
+                info.setAddressName(stringBuffer.toString());
+            }
+        }
+        return orders;
     }
 
     /**
@@ -68,8 +112,37 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 结果
      */
     @Override
-    public int insertOrder(Order order)
-    {
+    public int insertOrder(Order order) {
+        //首先判断商品库存
+        Goods goods = goodsService.selectGoodsById(order.getGoodsId());
+        ThrowUtils.throwIf(StringUtils.isNull(goods), "商品不存在");
+        ThrowUtils.throwIf(!goods.getStatus().equals(GoodsStatusEnum.GOODS_STATUS_1.getValue()),
+                "商品已经下架");
+        ThrowUtils.throwIf(goods.getInventory() < order.getNumbers(), "商品库存不足");
+
+        //判断用户余额
+        Long userId = SecurityUtils.getUserId();
+        UserBalance userBalance = userBalanceService.selectUserBalanceById(userId);
+        ThrowUtils.throwIf(StringUtils.isNull(userBalance), "用户余额不足,请先充值");
+        BigDecimal totalPrice = goods.getPrice().multiply(new BigDecimal(order.getNumbers()));
+        ThrowUtils.throwIf(userBalance.getBalance().compareTo(totalPrice) < 0, "用户余额不足,请先充值");
+
+
+        //判断地址
+        //如果没有传递就是默认地址
+        if (StringUtils.isNull(order.getAddressId())) {
+            UserAddress userAddress = new UserAddress();
+            userAddress.setUserId(userId);
+            userAddress.setIsDefault(YesNoEnum.SYS_YES_NO_Y.getValue());
+            List<UserAddress> userAddresses = userAddressService.selectUserAddressList(userAddress);
+            ThrowUtils.throwIf(StringUtils.isEmpty(userAddresses), "用户没有默认地址");
+            order.setAddressId(userAddresses.get(0).getId());
+        }
+        UserAddress userAddress = userAddressService.selectUserAddressById(order.getAddressId());
+        ThrowUtils.throwIf(StringUtils.isNull(userAddress), "地址不存在");
+        ThrowUtils.throwIf(!userAddress.getUserId().equals(userId), "用户地址错误");
+        order.setUserId(userId);
+        order.setStatus(OrderStatusEnum.ORDER_STATUS_1.getValue());
         order.setCreateTime(DateUtils.getNowDate());
         return orderMapper.insertOrder(order);
     }
@@ -81,8 +154,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 结果
      */
     @Override
-    public int updateOrder(Order order)
-    {
+    public int updateOrder(Order order) {
         order.setUpdateTime(DateUtils.getNowDate());
         return orderMapper.updateOrder(order);
     }
@@ -94,8 +166,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 结果
      */
     @Override
-    public int deleteOrderByIds(Long[] ids)
-    {
+    public int deleteOrderByIds(Long[] ids) {
         return orderMapper.deleteOrderByIds(ids);
     }
 
@@ -106,13 +177,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 结果
      */
     @Override
-    public int deleteOrderById(Long id)
-    {
+    public int deleteOrderById(Long id) {
         return orderMapper.deleteOrderById(id);
     }
+
     //endregion
     @Override
-    public QueryWrapper<Order> getQueryWrapper(OrderQuery orderQuery){
+    public QueryWrapper<Order> getQueryWrapper(OrderQuery orderQuery) {
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         //如果不使用params可以删除
         Map<String, Object> params = orderQuery.getParams();
@@ -120,19 +191,19 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             params = new HashMap<>();
         }
         Long id = orderQuery.getId();
-        queryWrapper.eq( StringUtils.isNotNull(id),"id",id);
+        queryWrapper.eq(StringUtils.isNotNull(id), "id", id);
 
         Long goodsId = orderQuery.getGoodsId();
-        queryWrapper.eq( StringUtils.isNotNull(goodsId),"goods_id",goodsId);
+        queryWrapper.eq(StringUtils.isNotNull(goodsId), "goods_id", goodsId);
 
         Long userId = orderQuery.getUserId();
-        queryWrapper.eq( StringUtils.isNotNull(userId),"user_id",userId);
+        queryWrapper.eq(StringUtils.isNotNull(userId), "user_id", userId);
 
         String status = orderQuery.getStatus();
-        queryWrapper.eq(StringUtils.isNotEmpty(status) ,"status",status);
+        queryWrapper.eq(StringUtils.isNotEmpty(status), "status", status);
 
         Date createTime = orderQuery.getCreateTime();
-        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime"))&&StringUtils.isNotNull(params.get("endCreateTime")),"create_time",params.get("beginCreateTime"),params.get("endCreateTime"));
+        queryWrapper.between(StringUtils.isNotNull(params.get("beginCreateTime")) && StringUtils.isNotNull(params.get("endCreateTime")), "create_time", params.get("beginCreateTime"), params.get("endCreateTime"));
 
         return queryWrapper;
     }

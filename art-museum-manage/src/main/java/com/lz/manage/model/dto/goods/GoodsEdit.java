@@ -1,6 +1,7 @@
 package com.lz.manage.model.dto.goods;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class GoodsEdit implements Serializable
     private String name;
 
     /** 价格 */
-    private Long price;
+    private BigDecimal price;
 
     /** 销量 */
     private Long sales;

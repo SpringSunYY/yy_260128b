@@ -1,6 +1,7 @@
 package com.lz.manage.model.dto.inventory;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -30,7 +31,7 @@ public class InventoryEdit implements Serializable
     private String name;
 
     /** 价格 */
-    private Long price;
+    private BigDecimal price;
 
     /** 数量 */
     private Long numbers;

@@ -6,6 +6,7 @@ import lombok.Data;
 import org.springframework.beans.BeanUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -40,7 +41,7 @@ public class GoodsVo implements Serializable {
     /**
      * 价格
      */
-    private Long price;
+    private BigDecimal price;
 
     /**
      * 销量
