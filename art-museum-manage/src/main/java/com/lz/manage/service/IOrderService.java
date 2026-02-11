@@ -81,4 +81,6 @@ public interface IOrderService extends IService<Order>
     List<OrderVo> convertVoList(List<Order> orderList);
 
     int payOrder(Long id);
+
+    int deliveryOrder(Long id);
 }

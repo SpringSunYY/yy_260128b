@@ -8,19 +8,14 @@ import com.lz.common.utils.SecurityUtils;
 import com.lz.common.utils.StringUtils;
 import com.lz.common.utils.ThrowUtils;
 import com.lz.manage.mapper.OrderMapper;
-import com.lz.manage.model.domain.Goods;
-import com.lz.manage.model.domain.Order;
-import com.lz.manage.model.domain.UserAddress;
-import com.lz.manage.model.domain.UserBalance;
+import com.lz.manage.model.domain.*;
 import com.lz.manage.model.dto.order.OrderQuery;
 import com.lz.manage.model.enums.GoodsStatusEnum;
+import com.lz.manage.model.enums.InventoryTypeEnum;
 import com.lz.manage.model.enums.OrderStatusEnum;
 import com.lz.manage.model.enums.YesNoEnum;
 import com.lz.manage.model.vo.order.OrderVo;
-import com.lz.manage.service.IGoodsService;
-import com.lz.manage.service.IOrderService;
-import com.lz.manage.service.IUserAddressService;
-import com.lz.manage.service.IUserBalanceService;
+import com.lz.manage.service.*;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +48,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Resource
     private ISysUserService sysUserService;
+
+    @Resource
+    private IInventoryService inventoryService;
 
     //region mybatis代码
 
@@ -241,11 +239,38 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         userBalance.setBalance(userBalance.getBalance().subtract(totalPrice));
         userBalanceService.updateUserBalance(userBalance);
 
-        goods.setInventory(goods.getInventory() - order.getNumbers());
         goods.setSales(goods.getSales() + order.getNumbers());
         goodsService.updateGoods(goods);
         order.setTotalPrice(totalPrice);
         order.setStatus(OrderStatusEnum.ORDER_STATUS_2.getValue());
+        return orderMapper.updateOrder(order);
+    }
+
+    @Transactional
+    @Override
+    public int deliveryOrder(Long id) {
+        Order order = orderMapper.selectOrderById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(order), "订单不存在");
+        ThrowUtils.throwIf(!order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_2.getValue()), "订单状态错误");
+        //首先判断商品库存
+        Goods goods = goodsService.selectGoodsById(order.getGoodsId());
+        ThrowUtils.throwIf(StringUtils.isNull(goods), "商品不存在");
+        ThrowUtils.throwIf(!goods.getStatus().equals(GoodsStatusEnum.GOODS_STATUS_1.getValue()),
+                "商品已经下架");
+        ThrowUtils.throwIf(goods.getInventory() < order.getNumbers(), "商品库存不足");
+        order.setStatus(OrderStatusEnum.ORDER_STATUS_3.getValue());
+
+        //创建出入库记录
+        Inventory inventory = new Inventory();
+        inventory.setGoodsId(goods.getId());
+        inventory.setType(InventoryTypeEnum.INVENTORY_TYPE_1.getValue());
+        inventory.setName(StringUtils.format("订单号:{},发货出库", order.getId()));
+        inventory.setPrice(order.getTotalPrice());
+        inventory.setNumbers(order.getNumbers());
+        inventory.setInventory(new Date());
+        inventory.setRemark(StringUtils.format("订单号:{},发货出库", order.getId()));
+        inventory.setUserId(SecurityUtils.getUserId());
+        inventoryService.insertInventory(inventory);
         return orderMapper.updateOrder(order);
     }
 

@@ -92,6 +92,17 @@ public class OrderController extends BaseController
     }
 
     /**
+     * 发货
+     */
+    @PreAuthorize("@ss.hasPermi('manage:order:manage')")
+    @Log(title = "订单信息", businessType = BusinessType.UPDATE)
+    @GetMapping("/deliveryOrder/{id}")
+    public AjaxResult deliveryOrder(@PathVariable("id") Long id)
+    {
+        return toAjax(orderService.deliveryOrder(id));
+    }
+
+    /**
      * 新增订单信息
      */
     @PreAuthorize("@ss.hasPermi('manage:order:add')")
