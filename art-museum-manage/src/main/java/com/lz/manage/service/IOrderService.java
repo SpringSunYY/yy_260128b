@@ -9,7 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 /**
  * 订单信息Service接口
- * 
+ *
  * @author YY
  * @date 2026-02-09
  */
@@ -18,7 +18,7 @@ public interface IOrderService extends IService<Order>
     //region mybatis代码
     /**
      * 查询订单信息
-     * 
+     *
      * @param id 订单信息主键
      * @return 订单信息
      */
@@ -26,7 +26,7 @@ public interface IOrderService extends IService<Order>
 
     /**
      * 查询订单信息列表
-     * 
+     *
      * @param order 订单信息
      * @return 订单信息集合
      */
@@ -34,7 +34,7 @@ public interface IOrderService extends IService<Order>
 
     /**
      * 新增订单信息
-     * 
+     *
      * @param order 订单信息
      * @return 结果
      */
@@ -42,7 +42,7 @@ public interface IOrderService extends IService<Order>
 
     /**
      * 修改订单信息
-     * 
+     *
      * @param order 订单信息
      * @return 结果
      */
@@ -50,7 +50,7 @@ public interface IOrderService extends IService<Order>
 
     /**
      * 批量删除订单信息
-     * 
+     *
      * @param ids 需要删除的订单信息主键集合
      * @return 结果
      */
@@ -58,7 +58,7 @@ public interface IOrderService extends IService<Order>
 
     /**
      * 删除订单信息信息
-     * 
+     *
      * @param id 订单信息主键
      * @return 结果
      */
@@ -79,4 +79,6 @@ public interface IOrderService extends IService<Order>
      * @return OrderVO集合
      */
     List<OrderVo> convertVoList(List<Order> orderList);
+
+    int payOrder(Long id);
 }

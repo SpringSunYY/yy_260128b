@@ -23,6 +23,7 @@ import com.lz.manage.service.IUserAddressService;
 import com.lz.manage.service.IUserBalanceService;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -214,6 +215,38 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
             return Collections.emptyList();
         }
         return orderList.stream().map(OrderVo::objToVo).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public int payOrder(Long id) {
+        Long userId = SecurityUtils.getUserId();
+        Order order = orderMapper.selectOrderById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(order), "订单不存在");
+        ThrowUtils.throwIf(!order.getUserId().equals(userId), "订单不存在错误");
+        ThrowUtils.throwIf(!order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_1.getValue()), "订单状态错误");
+        //首先判断商品库存
+        Goods goods = goodsService.selectGoodsById(order.getGoodsId());
+        ThrowUtils.throwIf(StringUtils.isNull(goods), "商品不存在");
+        ThrowUtils.throwIf(!goods.getStatus().equals(GoodsStatusEnum.GOODS_STATUS_1.getValue()),
+                "商品已经下架");
+        ThrowUtils.throwIf(goods.getInventory() < order.getNumbers(), "商品库存不足");
+
+        //判断用户余额
+        UserBalance userBalance = userBalanceService.selectUserBalanceById(userId);
+        ThrowUtils.throwIf(StringUtils.isNull(userBalance), "用户余额不足,请先充值");
+        BigDecimal totalPrice = goods.getPrice().multiply(new BigDecimal(order.getNumbers()));
+        ThrowUtils.throwIf(userBalance.getBalance().compareTo(totalPrice) < 0, "用户余额不足,请先充值");
+
+        userBalance.setBalance(userBalance.getBalance().subtract(totalPrice));
+        userBalanceService.updateUserBalance(userBalance);
+
+        goods.setInventory(goods.getInventory() - order.getNumbers());
+        goods.setSales(goods.getSales() + order.getNumbers());
+        goodsService.updateGoods(goods);
+        order.setTotalPrice(totalPrice);
+        order.setStatus(OrderStatusEnum.ORDER_STATUS_2.getValue());
+        return orderMapper.updateOrder(order);
     }
 
 }

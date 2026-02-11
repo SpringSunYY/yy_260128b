@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+
+//支付
+export function payOrder(id) {
+  return request({
+    url: '/manage/order/payOrder/' + id,
+    method: 'get'
+  })
+}
+
 // 查询订单信息列表
 export function listOrder(query) {
   return request({

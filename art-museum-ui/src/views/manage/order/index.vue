@@ -139,6 +139,15 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-info"
+            v-if="scope.row.status === '1'"
+            @click="handleToPay(scope.row)"
+            v-hasPermi="['manage:order:add']"
+          >支付
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:order:edit']"
@@ -218,7 +227,7 @@
 </template>
 
 <script>
-import {addOrder, delOrder, getOrder, listOrder, updateOrder} from "@/api/manage/order";
+import {addOrder, delOrder, getOrder, listOrder, payOrder, updateOrder} from "@/api/manage/order";
 import {listUserAddress} from "@/api/manage/userAddress";
 
 export default {
@@ -312,6 +321,16 @@ export default {
     this.loadAddressList();
   },
   methods: {
+    //支付
+    handleToPay(row){
+      this.$modal.confirm('是否确认支付订单信息编号为"' + row.id + '"的数据项？').then(function () {
+        return payOrder(row.id);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("支付成功");
+      }).catch(() => {
+      });
+    },
     // 加载地址列表
     loadAddressList() {
       this.addressLoading = true;
