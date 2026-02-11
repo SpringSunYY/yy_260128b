@@ -166,6 +166,15 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-info"
+            v-if="scope.row.status!=='1'"
+            @click="handleAfterSales(scope.row)"
+            v-hasPermi="['manage:afterSales:add']"
+          >售后
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:order:edit']"
@@ -241,18 +250,65 @@
         <el-button @click="cancel">取 消</el-button>
       </div>
     </el-dialog>
+
+    <!-- 添加或修改售后信息对话框 -->
+    <el-dialog :title="title" :visible.sync="afterSalesOpen" width="500px" append-to-body>
+      <el-form ref="form" :model="afterSalesForm" :rules="afterSalesRoles" label-width="80px">
+        <el-form-item label="售后类型" prop="type">
+          <el-select v-model="afterSalesForm.type" placeholder="请选择售后类型">
+            <el-option
+              v-for="dict in dict.type.after_sales_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            ></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="申请理由" prop="apply">
+          <editor :min-height="192" v-model="afterSalesForm.apply" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+        <el-form-item label="备注" prop="remark">
+          <el-input v-model="afterSalesForm.remark" type="textarea" placeholder="请输入内容"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitFormAfterSales">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {addOrder, deliveryOrder, receiveOrder,delOrder, getOrder, listOrder, payOrder, updateOrder} from "@/api/manage/order";
+import {
+  addOrder,
+  deliveryOrder,
+  delOrder,
+  getOrder,
+  listOrder,
+  payOrder,
+  receiveOrder,
+  updateOrder
+} from "@/api/manage/order";
 import {listUserAddress} from "@/api/manage/userAddress";
+import {addAfterSales} from "@/api/manage/afterSales";
 
 export default {
   name: "Order",
-  dicts: ['order_status'],
+  dicts: ['order_status', 'after_sales_type'],
   data() {
     return {
+      //售后
+      afterSalesOpen: false,
+      afterSalesForm: {},
+      afterSalesRoles: {
+        type: [
+          {required: true, message: "售后类型不能为空", trigger: "change"}
+        ],
+        apply: [
+          {required: true, message: "申请理由不能为空", trigger: "blur"}
+        ],
+      },
       // 地址选择相关
       addressList: [],
       addressLoading: false,
@@ -339,6 +395,18 @@ export default {
     this.loadAddressList();
   },
   methods: {
+    submitFormAfterSales() {
+      addAfterSales(this.afterSalesForm).then(response => {
+        this.$modal.msgSuccess("申请成功");
+        this.afterSalesOpen = false;
+        this.getList();
+      });
+    },
+    handleAfterSales(row) {
+      this.afterSalesOpen = true;
+      this.afterSalesForm.orderId = row.id;
+      this.title = "申请售后";
+    },
     //收货
     handleToReceive(row) {
       this.$modal.confirm('是否确认收货订单信息编号为"' + row.id + '"的数据项？').then(function () {
@@ -400,6 +468,7 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
+      this.afterSalesOpen = false;
       this.reset();
     },
     // 表单重置

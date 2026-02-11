@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.AfterSalesMapper">
-    
+
     <resultMap type="AfterSales" id="AfterSalesResult">
         <result property="id"    column="id"    />
         <result property="orderId"    column="order_id"    />
@@ -27,17 +27,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectAfterSalesList" parameterType="AfterSales" resultMap="AfterSalesResult">
         <include refid="selectAfterSalesVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="type != null  and type != ''"> and type = #{type}</if>
-            <if test="auditStatus != null "> and audit_status = #{auditStatus}</if>
-            <if test="auditBy != null  and auditBy != ''"> and audit_by like concat('%', #{auditBy}, '%')</if>
-            <if test="params.beginAuditTime != null and params.beginAuditTime != '' and params.endAuditTime != null and params.endAuditTime != ''"> and DATE_FORMAT(audit_time, '%Y-%m-%d') between #{params.beginAuditTime} and #{params.endAuditTime}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
-            <if test="updateBy != null  and updateBy != ''"> and update_by like concat('%', #{updateBy}, '%')</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="type != null  and type != ''">and type = #{type}</if>
+            <if test="auditStatus != null ">and audit_status = #{auditStatus}</if>
+            <if test="auditBy != null  and auditBy != ''">and audit_by like concat('%', #{auditBy}, '%')</if>
+            <if test="params.beginAuditTime != null and params.beginAuditTime != '' and params.endAuditTime != null and params.endAuditTime != ''">
+                and DATE_FORMAT(audit_time, '%Y-%m-%d') between #{params.beginAuditTime} and #{params.endAuditTime}
+            </if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <if test="updateBy != null  and updateBy != ''">and update_by like concat('%', #{updateBy}, '%')</if>
         </where>
+        order by create_time desc
     </select>
-    
+
     <select id="selectAfterSalesById" parameterType="Long" resultMap="AfterSalesResult">
         <include refid="selectAfterSalesVo"/>
         where id = #{id}
@@ -102,7 +107,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteAfterSalesByIds" parameterType="String">
-        delete from tb_after_sales where id in 
+        delete from tb_after_sales where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>

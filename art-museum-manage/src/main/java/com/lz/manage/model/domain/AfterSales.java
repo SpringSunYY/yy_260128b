@@ -35,12 +35,18 @@ public class AfterSales implements Serializable
     private Long orderId;
 
     /** 商品 */
-    @Excel(name = "商品")
+    @Excel(name = "商品",type = Excel.Type.IMPORT)
     private Long goodsId;
+    @TableField(exist = false)
+    @Excel(name = "商品名称",type = Excel.Type.EXPORT)
+    private String goodsName;
 
     /** 用户 */
-    @Excel(name = "用户")
+    @Excel(name = "用户",type = Excel.Type.IMPORT)
     private Long userId;
+    @TableField(exist = false)
+    @Excel(name = "用户名称",type = Excel.Type.EXPORT)
+    private String userName;
 
     /** 售后类型 */
     @Excel(name = "售后类型", dictType = "after_sales_type")

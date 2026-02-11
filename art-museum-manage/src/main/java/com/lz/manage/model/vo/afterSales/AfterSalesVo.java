@@ -1,14 +1,13 @@
 package com.lz.manage.model.vo.afterSales;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-import com.lz.common.annotation.Excel;
-import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.lz.manage.model.domain.AfterSales;
+import lombok.Data;
+import org.springframework.beans.BeanUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * 售后信息Vo对象 tb_after_sales
  *
@@ -16,57 +15,92 @@ import com.lz.manage.model.domain.AfterSales;
  * @date 2026-02-09
  */
 @Data
-public class AfterSalesVo implements Serializable
-{
+public class AfterSalesVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    /** 编号 */
+    /**
+     * 编号
+     */
     private Long id;
 
-    /** 订单 */
+    /**
+     * 订单
+     */
     private Long orderId;
 
-    /** 商品 */
+    /**
+     * 商品
+     */
     private Long goodsId;
+    /**
+     * 商品名称
+     */
+    private String goodsName;
 
-    /** 用户 */
+    /**
+     * 用户
+     */
     private Long userId;
+    /**
+     * 用户名称
+     */
+    private String userName;
 
-    /** 售后类型 */
+    /**
+     * 售后类型
+     */
     private String type;
 
-    /** 申请理由 */
+    /**
+     * 申请理由
+     */
     private String apply;
 
-    /** 审核状态 */
+    /**
+     * 审核状态
+     */
     private String auditStatus;
 
-    /** 审核人 */
+    /**
+     * 审核人
+     */
     private String auditBy;
 
-    /** 审核时间 */
+    /**
+     * 审核时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date auditTime;
 
-    /** 审核原因 */
+    /**
+     * 审核原因
+     */
     private String auditDesc;
 
-    /** 备注 */
+    /**
+     * 备注
+     */
     private String remark;
 
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date createTime;
 
-    /** 更新人 */
+    /**
+     * 更新人
+     */
     private String updateBy;
 
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date updateTime;
 
 
-     /**
+    /**
      * 对象转封装类
      *
      * @param afterSales AfterSales实体对象
