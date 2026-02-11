@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.CollectMapper">
-    
+
     <resultMap type="Collect" id="CollectResult">
         <result property="id"    column="id"    />
         <result property="type"    column="type"    />
@@ -18,13 +18,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectCollectList" parameterType="Collect" resultMap="CollectResult">
         <include refid="selectCollectVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="type != null  and type != ''"> and type = #{type}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="targetId != null ">and target_id = #{targetId}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="type != null  and type != ''">and type = #{type}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
         </where>
     </select>
-    
+
     <select id="selectCollectById" parameterType="Long" resultMap="CollectResult">
         <include refid="selectCollectVo"/>
         where id = #{id}
@@ -62,7 +68,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteCollectByIds" parameterType="String">
-        delete from tb_collect where id in 
+        delete from tb_collect where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>

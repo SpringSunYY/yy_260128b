@@ -116,7 +116,13 @@
       <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
       <el-table-column label="关联藏品" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
                        prop="collectionName"/>
-      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="name"/>
+      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="name">
+        <template slot-scope="scope">
+          <router-link :to="{name: 'GoodsDetail', query: {id: scope.row.id}}" class="link-type">
+            <span>{{ scope.row.name }}</span>
+          </router-link>
+        </template>
+      </el-table-column>
       <el-table-column label="价格" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible"
                        prop="price"/>
       <el-table-column label="销量" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
@@ -220,9 +226,9 @@
             </el-radio>
           </el-radio-group>
         </el-form-item>
-<!--        <el-form-item label="库存" prop="inventory">-->
-<!--          <el-input v-model="form.inventory" placeholder="请输入库存"/>-->
-<!--        </el-form-item>-->
+        <!--        <el-form-item label="库存" prop="inventory">-->
+        <!--          <el-input v-model="form.inventory" placeholder="请输入库存"/>-->
+        <!--        </el-form-item>-->
         <el-form-item label="主图" prop="imageSrc">
           <image-upload v-model="form.imageSrc"/>
         </el-form-item>

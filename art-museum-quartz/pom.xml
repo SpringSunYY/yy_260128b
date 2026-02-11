@@ -35,6 +35,11 @@
             <artifactId>art-museum-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.lz</groupId>
+            <artifactId>art-museum-manage</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

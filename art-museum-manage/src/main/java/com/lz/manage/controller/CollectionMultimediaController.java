@@ -42,7 +42,7 @@ public class CollectionMultimediaController extends BaseController
     /**
      * 查询藏品多媒体列表
      */
-    @PreAuthorize("@ss.hasPermi('manage:collectionMultimedia:list')")
+    @PreAuthorize("@ss.hasAnyPermi('manage:collectionMultimedia:list,manage:collectionMultimedia:query')")
     @GetMapping("/list")
     public TableDataInfo list(CollectionMultimediaQuery collectionMultimediaQuery)
     {

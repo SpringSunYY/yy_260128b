@@ -36,7 +36,7 @@ public class CollectionInfoController extends BaseController {
     /**
      * 查询藏品信息列表
      */
-    @PreAuthorize("@ss.hasPermi('manage:collectionInfo:list')")
+    @PreAuthorize("@ss.hasAnyPermi('manage:collectionInfo:list,manage:collectionInfo:query')")
     @GetMapping("/list")
     public TableDataInfo list(CollectionInfoQuery collectionInfoQuery) {
         CollectionInfo collectionInfo = CollectionInfoQuery.queryToObj(collectionInfoQuery);

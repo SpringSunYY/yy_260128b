@@ -2,6 +2,7 @@ package com.lz.manage.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
@@ -61,6 +62,7 @@ public class EvaluateServiceImpl extends ServiceImpl<EvaluateMapper, Evaluate> i
      * @param evaluate 评价信息
      * @return 评价信息
      */
+    @DataScope(deptAlias = "tb_evaluate", userAlias = "tb_evaluate")
     @Override
     public List<Evaluate> selectEvaluateList(Evaluate evaluate) {
         return getEvaluateList(evaluate);

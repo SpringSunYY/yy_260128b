@@ -36,7 +36,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
                 and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
             </if>
         </where>
-        order by sales desc
+        order by sales desc,create_time desc
     </select>
 
     <select id="selectGoodsById" parameterType="Long" resultMap="GoodsResult">

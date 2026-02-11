@@ -185,14 +185,14 @@ export const dynamicRoutes = [
     path: '/collectionMange/collectionInfo/detail',
     name: 'CollectionInfoDetail',
     hidden: true,
-    permissions: ['collectionMange:collectionInfo:query'],
+    permissions: ['manage:collectionInfo:query'],
     component: () => import('@/views/manage/collectionInfo/detail'),
   },
   {
     path: '/collectionMange/goods/detail',
     name: 'GoodsDetail',
     hidden: true,
-    permissions: ['collectionMange:goods:query'],
+    permissions: ['manage:goods:query'],
     component: () => import('@/views/manage/goods/detail'),
   },
 ]

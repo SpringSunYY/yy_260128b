@@ -41,7 +41,7 @@ public class CategoryController extends BaseController
     /**
      * 查询分类标签列表
      */
-    @PreAuthorize("@ss.hasPermi('manage:category:list')")
+    @PreAuthorize("@ss.hasAnyPermi('manage:category:list,manage:category:query')")
     @GetMapping("/list")
     public AjaxResult list(CategoryQuery categoryQuery)
     {

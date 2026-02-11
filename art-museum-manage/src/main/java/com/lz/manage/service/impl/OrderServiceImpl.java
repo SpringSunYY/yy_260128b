@@ -1,7 +1,9 @@
 package com.lz.manage.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
@@ -72,6 +74,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      * @return 订单信息
      */
     @Override
+    @DataScope(deptAlias = "tb_order", userAlias = "tb_order")
     public List<Order> selectOrderList(Order order) {
         List<Order> orders = orderMapper.selectOrderList(order);
         for (Order info : orders) {
@@ -121,7 +124,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
         //判断用户余额
         Long userId = SecurityUtils.getUserId();
-        UserBalance userBalance = userBalanceService.selectUserBalanceById(userId);
+        UserBalance userBalance = userBalanceService.getOne(new LambdaQueryWrapper<UserBalance>().eq(UserBalance::getUserId, userId));
         ThrowUtils.throwIf(StringUtils.isNull(userBalance), "用户余额不足,请先充值");
         BigDecimal totalPrice = goods.getPrice().multiply(new BigDecimal(order.getNumbers()));
         ThrowUtils.throwIf(userBalance.getBalance().compareTo(totalPrice) < 0, "用户余额不足,请先充值");
@@ -237,7 +240,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         ThrowUtils.throwIf(goods.getInventory() < order.getNumbers(), "商品库存不足");
 
         //判断用户余额
-        UserBalance userBalance = userBalanceService.selectUserBalanceById(userId);
+        UserBalance userBalance = userBalanceService.getOne(new LambdaQueryWrapper<UserBalance>().eq(UserBalance::getUserId, userId));
         ThrowUtils.throwIf(StringUtils.isNull(userBalance), "用户余额不足,请先充值");
         BigDecimal totalPrice = goods.getPrice().multiply(new BigDecimal(order.getNumbers()));
         ThrowUtils.throwIf(userBalance.getBalance().compareTo(totalPrice) < 0, "用户余额不足,请先充值");
@@ -289,6 +292,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         ThrowUtils.throwIf(!order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_3.getValue()), "订单状态错误");
         order.setStatus(OrderStatusEnum.ORDER_STATUS_4.getValue());
         return orderMapper.updateOrder(order);
+    }
+
+    @Override
+        public void autoUpdateOrder() {
+        //查询到十五分钟以前还没付款的订单
+        List<Order> orderList = this.list(new LambdaQueryWrapper<Order>()
+                .eq(Order::getStatus, OrderStatusEnum.ORDER_STATUS_1.getValue())
+                .lt(Order::getCreateTime, DateUtils.addMinutes(new Date(), -15)));
+        if (orderList.isEmpty()) {
+            return;
+        }
+        for (Order order : orderList) {
+            //取消订单
+            order.setStatus(OrderStatusEnum.ORDER_STATUS_8.getValue());
+        }
+        this.updateBatchById(orderList);
     }
 
 }

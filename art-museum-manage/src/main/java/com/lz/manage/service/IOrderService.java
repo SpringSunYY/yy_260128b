@@ -85,4 +85,10 @@ public interface IOrderService extends IService<Order>
     int deliveryOrder(Long id);
 
     int receiveOrder(Long id);
+
+    /**
+     * 自动更新订单
+     */
+    void autoUpdateOrder();
+
 }

@@ -108,7 +108,7 @@ export default {
         pageSize: 10,
         categoryId: null,
         name: null,
-        status: null,
+        status: '1',
         sortType: null,
         author: null,
         era: null
@@ -195,7 +195,7 @@ export default {
     resetSearch() {
       this.queryParams.categoryId = null;
       this.queryParams.name = null;
-      this.queryParams.status = null;
+      this.queryParams.status = '1';
       this.queryParams.sortType = null;
       this.queryParams.author = null;
       this.queryParams.era = null;

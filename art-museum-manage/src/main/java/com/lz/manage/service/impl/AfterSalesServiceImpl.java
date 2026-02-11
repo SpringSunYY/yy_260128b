@@ -3,6 +3,7 @@ package com.lz.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
@@ -72,6 +73,7 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
      * @return 售后信息
      */
     @Override
+    @DataScope(deptAlias = "tb_after_sales", userAlias = "tb_after_sales")
     public List<AfterSales> selectAfterSalesList(AfterSales afterSales) {
         List<AfterSales> afterSalesList = afterSalesMapper.selectAfterSalesList(afterSales);
         for (AfterSales info : afterSalesList) {

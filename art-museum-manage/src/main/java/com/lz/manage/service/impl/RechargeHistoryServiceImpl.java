@@ -3,6 +3,7 @@ package com.lz.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
@@ -62,6 +63,7 @@ public class RechargeHistoryServiceImpl extends ServiceImpl<RechargeHistoryMappe
      * @return 充值记录
      */
     @Override
+    @DataScope(deptAlias = "tb_recharge_history", userAlias = "tb_recharge_history")
     public List<RechargeHistory> selectRechargeHistoryList(RechargeHistory rechargeHistory) {
         List<RechargeHistory> rechargeHistories = rechargeHistoryMapper.selectRechargeHistoryList(rechargeHistory);
         for (RechargeHistory info : rechargeHistories) {

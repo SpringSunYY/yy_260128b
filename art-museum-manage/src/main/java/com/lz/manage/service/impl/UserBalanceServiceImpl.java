@@ -2,6 +2,7 @@ package com.lz.manage.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.StringUtils;
@@ -55,6 +56,7 @@ public class UserBalanceServiceImpl extends ServiceImpl<UserBalanceMapper, UserB
      * @return 用户余额
      */
     @Override
+    @DataScope(deptAlias = "tb_user_balance", userAlias = "tb_user_balance")
     public List<UserBalance> selectUserBalanceList(UserBalance userBalance) {
         List<UserBalance> userBalances = userBalanceMapper.selectUserBalanceList(userBalance);
         for (UserBalance info : userBalances) {

@@ -3,6 +3,7 @@ package com.lz.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.SecurityUtils;
@@ -56,6 +57,7 @@ public class UserAddressServiceImpl extends ServiceImpl<UserAddressMapper, UserA
      * @return 用户地址
      */
     @Override
+    @DataScope(deptAlias = "tb_user_address", userAlias = "tb_user_address")
     public List<UserAddress> selectUserAddressList(UserAddress userAddress) {
         List<UserAddress> userAddresses = userAddressMapper.selectUserAddressList(userAddress);
         for (UserAddress info : userAddresses) {

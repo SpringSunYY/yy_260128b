@@ -3,6 +3,7 @@ package com.lz.manage.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.lz.common.annotation.DataScope;
 import com.lz.common.core.domain.entity.SysUser;
 import com.lz.common.utils.DateUtils;
 import com.lz.common.utils.StringUtils;
@@ -62,6 +63,7 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
      * @param collect 收藏信息
      * @return 收藏信息
      */
+    @DataScope(deptAlias = "tb_collect", userAlias = "tb_collect")
     @Override
     public List<Collect> selectCollectList(Collect collect) {
         List<Collect> collects = collectMapper.selectCollectList(collect);

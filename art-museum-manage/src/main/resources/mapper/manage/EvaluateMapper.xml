@@ -24,11 +24,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectEvaluateList" parameterType="Evaluate" resultMap="EvaluateResult">
         <include refid="selectEvaluateVo"/>
         <where>
-            <if test="id != null "> and id = #{id}</if>
-            <if test="collectionId != null "> and collection_id = #{collectionId}</if>
-            <if test="status != null  and status != ''"> and status = #{status}</if>
-            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="collectionId != null ">and collection_id = #{collectionId}</if>
+            <if test="status != null  and status != ''">and status = #{status}</if>
+            <if test="title != null  and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
         </where>
         order by create_time desc
     </select>

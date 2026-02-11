@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.lz.manage.mapper.UserAddressMapper">
-    
+
     <resultMap type="UserAddress" id="UserAddressResult">
         <result property="id"    column="id"    />
         <result property="userId"    column="user_id"    />
@@ -25,18 +25,22 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectUserAddressList" parameterType="UserAddress" resultMap="UserAddressResult">
         <include refid="selectUserAddressVo"/>
-        <where>  
-            <if test="id != null "> and id = #{id}</if>
-            <if test="userId != null "> and user_id = #{userId}</if>
-            <if test="phone != null  and phone != ''"> and phone like concat('%', #{phone}, '%')</if>
-            <if test="province != null  and province != ''"> and province like concat('%', #{province}, '%')</if>
-            <if test="city != null  and city != ''"> and city like concat('%', #{city}, '%')</if>
-            <if test="county != null  and county != ''"> and county like concat('%', #{county}, '%')</if>
-            <if test="isDefault != null  and isDefault != ''"> and is_default = #{isDefault}</if>
-            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+        <where>
+            <if test="id != null ">and id = #{id}</if>
+            <if test="userId != null ">and user_id = #{userId}</if>
+            <if test="phone != null  and phone != ''">and phone like concat('%', #{phone}, '%')</if>
+            <if test="province != null  and province != ''">and province like concat('%', #{province}, '%')</if>
+            <if test="city != null  and city != ''">and city like concat('%', #{city}, '%')</if>
+            <if test="county != null  and county != ''">and county like concat('%', #{county}, '%')</if>
+            <if test="isDefault != null  and isDefault != ''">and is_default = #{isDefault}</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''">
+                and DATE_FORMAT(create_time, '%Y-%m-%d') between #{params.beginCreateTime} and #{params.endCreateTime}
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
         </where>
     </select>
-    
+
     <select id="selectUserAddressById" parameterType="Long" resultMap="UserAddressResult">
         <include refid="selectUserAddressVo"/>
         where id = #{id}
@@ -95,7 +99,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteUserAddressByIds" parameterType="String">
-        delete from tb_user_address where id in 
+        delete from tb_user_address where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
