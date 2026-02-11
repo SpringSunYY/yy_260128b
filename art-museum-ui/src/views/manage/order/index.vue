@@ -157,6 +157,15 @@
           <el-button
             size="mini"
             type="text"
+            icon="el-icon-info"
+            v-if="scope.row.status === '3'"
+            @click="handleToReceive(scope.row)"
+            v-hasPermi="['manage:order:add']"
+          >收货
+          </el-button>
+          <el-button
+            size="mini"
+            type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:order:edit']"
@@ -236,7 +245,7 @@
 </template>
 
 <script>
-import {addOrder, deliveryOrder, delOrder, getOrder, listOrder, payOrder, updateOrder} from "@/api/manage/order";
+import {addOrder, deliveryOrder, receiveOrder,delOrder, getOrder, listOrder, payOrder, updateOrder} from "@/api/manage/order";
 import {listUserAddress} from "@/api/manage/userAddress";
 
 export default {
@@ -330,6 +339,16 @@ export default {
     this.loadAddressList();
   },
   methods: {
+    //收货
+    handleToReceive(row) {
+      this.$modal.confirm('是否确认收货订单信息编号为"' + row.id + '"的数据项？').then(function () {
+        return receiveOrder(row.id);
+      }).then(() => {
+        this.getList();
+        this.$modal.msgSuccess("收货成功");
+      }).catch(() => {
+      });
+    },
     //发货
     handleToDelivery(row) {
       this.$modal.confirm('是否确认发货订单信息编号为"' + row.id + '"的数据项？').then(function () {

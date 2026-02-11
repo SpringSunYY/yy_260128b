@@ -154,6 +154,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
      */
     @Override
     public int updateOrder(Order order) {
+        //如果不是待发货、待支付、收货不可以修改地址
+        Order orderDb = orderMapper.selectOrderById(order.getId());
+        ThrowUtils.throwIf(StringUtils.isNull(orderDb), "订单不存在");
+        ThrowUtils.throwIf(!orderDb.getStatus().equals(OrderStatusEnum.ORDER_STATUS_1.getValue())
+                && !orderDb.getStatus().equals(OrderStatusEnum.ORDER_STATUS_2.getValue())
+                && !orderDb.getStatus().equals(OrderStatusEnum.ORDER_STATUS_3.getValue()), "订单状态错误,不可修改地址");
         order.setUpdateTime(DateUtils.getNowDate());
         return orderMapper.updateOrder(order);
     }
@@ -271,6 +277,17 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         inventory.setRemark(StringUtils.format("订单号:{},发货出库", order.getId()));
         inventory.setUserId(SecurityUtils.getUserId());
         inventoryService.insertInventory(inventory);
+        return orderMapper.updateOrder(order);
+    }
+
+    @Override
+    public int receiveOrder(Long id) {
+        Long userId = SecurityUtils.getUserId();
+        Order order = orderMapper.selectOrderById(id);
+        ThrowUtils.throwIf(StringUtils.isNull(order), "订单不存在");
+        ThrowUtils.throwIf(!order.getUserId().equals(userId), "订单不存在错误");
+        ThrowUtils.throwIf(!order.getStatus().equals(OrderStatusEnum.ORDER_STATUS_3.getValue()), "订单状态错误");
+        order.setStatus(OrderStatusEnum.ORDER_STATUS_4.getValue());
         return orderMapper.updateOrder(order);
     }
 

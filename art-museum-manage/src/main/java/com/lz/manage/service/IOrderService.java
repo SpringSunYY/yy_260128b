@@ -83,4 +83,6 @@ public interface IOrderService extends IService<Order>
     int payOrder(Long id);
 
     int deliveryOrder(Long id);
+
+    int receiveOrder(Long id);
 }

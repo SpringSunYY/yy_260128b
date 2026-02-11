@@ -17,6 +17,14 @@ export function deliveryOrder(id) {
   })
 }
 
+//收货
+export function receiveOrder(id) {
+  return request({
+    url: '/manage/order/receiveOrder/' + id,
+    method: 'get'
+  })
+}
+
 // 查询订单信息列表
 export function listOrder(query) {
   return request({
