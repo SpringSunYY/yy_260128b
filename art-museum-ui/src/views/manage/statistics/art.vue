@@ -29,63 +29,6 @@
       </div>
     </el-card>
 
-    <!-- 统计数据展示区域 -->
-    <div class="stats-section">
-      <el-row :gutter="20">
-        <el-col :span="6">
-          <el-card class="stats-card" shadow="hover">
-            <div class="stats-content">
-              <div class="stats-icon">
-                <i class="el-icon-data-line"></i>
-              </div>
-              <div class="stats-info">
-                <div class="stats-title">讲座数</div>
-                <div class="stats-value">{{ collectionTotal }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card" shadow="hover">
-            <div class="stats-content">
-              <div class="stats-icon">
-                <i class="el-icon-data-line"></i>
-              </div>
-              <div class="stats-info">
-                <div class="stats-title">预约数</div>
-                <div class="stats-value">{{ noticeTotal }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card" shadow="hover">
-            <div class="stats-content">
-              <div class="stats-icon">
-                <i class="el-icon-data-line"></i>
-              </div>
-              <div class="stats-info">
-                <div class="stats-title">评论数</div>
-                <div class="stats-value">{{ collectTotal }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-        <el-col :span="6">
-          <el-card class="stats-card" shadow="hover">
-            <div class="stats-content">
-              <div class="stats-icon">
-                <i class="el-icon-data-line"></i>
-              </div>
-              <div class="stats-info">
-                <div class="stats-title">当前时间</div>
-                <div class="stats-value" style="font-size: 16px">{{ currentDate }}</div>
-              </div>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
-    </div>
 
     <!-- 图表展示区域 -->
     <div class="charts-section">
@@ -101,6 +44,8 @@
             <div class="chart-container">
               <BarRankingZoomCharts
                 direction="right"
+                :chart-data="collectionRankStatisticsData"
+                :chart-title="collectionRankStatisticsName"
               />
             </div>
           </el-card>
@@ -115,7 +60,8 @@
             </template>
             <div class="chart-container">
               <BarLineZoomCharts
-
+                :chart-data="collectionStatisticsData"
+                :chart-title="collectionStatisticsName"
               />
             </div>
           </el-card>
@@ -130,7 +76,8 @@
             </template>
             <div class="chart-container">
               <BarAutoCarouselCharts
-
+                :chart-data="noticeStatisticsData"
+                :chart-title="noticeStatisticsName"
               />
             </div>
           </el-card>
@@ -145,7 +92,8 @@
             </template>
             <div class="chart-container">
               <BarRankingZoomCharts
-
+                :chart-data="noticeRankStatisticsData"
+                :chart-title="noticeRankStatisticsName"
               />
             </div>
           </el-card>
@@ -163,6 +111,7 @@ import BarLineZoomCharts from "@/components/Echarts/BarLineZoomCharts.vue";
 import dayjs from "dayjs";
 import BarAutoCarouselCharts from "@/components/Echarts/BarAutoCarouselCharts.vue";
 import BarRankingZoomCharts from "@/components/Echarts/BarRankingZoomCharts.vue";
+import {collectRankStatistics, collectStatistics} from "@/api/manage/statistics";
 
 const defaultStart = dayjs().subtract(14, "day").format("YYYY-MM-DD")
 const defaultEnd = dayjs().format("YYYY-MM-DD")
@@ -178,7 +127,7 @@ export default {
         endTime: defaultEnd
       },
       collectTotal: 0,
-      //场地使用率
+      //藏品收藏
       collectionRankStatisticsData: [],
       collectionRankStatisticsName: "藏品排行",
       //讲座
@@ -197,25 +146,49 @@ export default {
   },
   created() {
     this.getStatistics()
-    this.startTimer();
-  },
-  beforeDestroy() {
-    this.clearTimer();
   },
   methods: {
-    startTimer() {
-      this.timer = setInterval(() => {
-        this.currentDate = dayjs().format("YYYY-MM-DD HH:mm:ss");
-      }, 1000);
+    //藏品收藏
+    getCollectionStatisticsData() {
+      collectStatistics({
+        ...this.query,
+        type: '2'
+      }).then(res => {
+        this.collectionStatisticsData = res.data
+      })
     },
-    clearTimer() {
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
+    //藏品排行
+    getCollectionRankStatisticsData() {
+      collectRankStatistics({
+        ...this.query,
+        type: '2'
+      }).then(res => {
+        this.collectionRankStatisticsData = res.data
+      })
+    },
+    //咨询收藏
+    getNoticeStatisticsData() {
+      collectStatistics({
+        ...this.query,
+        type: '1'
+      }).then(res => {
+        this.noticeStatisticsData = res.data
+      })
+    },
+    //咨询排行
+    getNoticeRankStatisticsData() {
+      collectRankStatistics({
+        ...this.query,
+        type: '1'
+      }).then(res => {
+        this.noticeRankStatisticsData = res.data
+      })
     },
     getStatistics() {
-
+      this.getCollectionStatisticsData()
+      this.getNoticeStatisticsData()
+      this.getCollectionRankStatisticsData()
+      this.getNoticeRankStatisticsData()
     },
 
     handleQuery() {
@@ -269,52 +242,6 @@ export default {
   }
 }
 
-// 统计数据展示区域
-.stats-section {
-  margin-bottom: 20px;
-
-  .stats-card {
-    .stats-content {
-      display: flex;
-      align-items: center;
-      padding: 20px;
-
-      .stats-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 20px;
-
-        i {
-          font-size: 24px;
-          color: white;
-        }
-      }
-
-      .stats-info {
-        flex: 1;
-
-        .stats-title {
-          font-size: 14px;
-          color: #909399;
-          margin-bottom: 8px;
-          font-weight: 500;
-        }
-
-        .stats-value {
-          font-size: 32px;
-          font-weight: bold;
-          color: #303133;
-          line-height: 1;
-        }
-      }
-    }
-  }
-}
 
 // 图表展示区域
 .charts-section {
