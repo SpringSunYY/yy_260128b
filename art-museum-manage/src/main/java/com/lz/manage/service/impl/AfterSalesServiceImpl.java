@@ -168,6 +168,9 @@ public class AfterSalesServiceImpl extends ServiceImpl<AfterSalesMapper, AfterSa
 
             order.setStatus(afterSales.getType());
             orderService.updateById(order);
+        }else if (afterSales.getAuditStatus().equals(AuditStatusEnum.AUDIT_STATUS_3.getValue())){
+            order.setStatus(OrderStatusEnum.ORDER_STATUS_4.getValue());
+            orderService.updateById(order);
         }
         return afterSalesMapper.updateAfterSales(afterSales);
     }
