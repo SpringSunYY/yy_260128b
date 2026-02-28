@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 咨询信息Vo对象 tb_notice_info
+ * 资讯信息Vo对象 tb_notice_info
  *
  * @author YY
  * @date 2026-02-10

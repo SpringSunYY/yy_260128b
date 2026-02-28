@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 图书馆信息Service业务层处理
+ * 美术馆信息Service业务层处理
  *
  * @author YY
  * @date 2026-02-28
@@ -39,10 +39,10 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     //region mybatis代码
 
     /**
-     * 查询图书馆信息
+     * 查询美术馆信息
      *
-     * @param id 图书馆信息主键
-     * @return 图书馆信息
+     * @param id 美术馆信息主键
+     * @return 美术馆信息
      */
     @Override
     public GalleryInfo selectGalleryInfoById(Long id) {
@@ -50,10 +50,10 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     }
 
     /**
-     * 查询图书馆信息列表
+     * 查询美术馆信息列表
      *
-     * @param galleryInfo 图书馆信息
-     * @return 图书馆信息
+     * @param galleryInfo 美术馆信息
+     * @return 美术馆信息
      */
     @Override
     public List<GalleryInfo> selectGalleryInfoList(GalleryInfo galleryInfo) {
@@ -68,9 +68,9 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     }
 
     /**
-     * 新增图书馆信息
+     * 新增美术馆信息
      *
-     * @param galleryInfo 图书馆信息
+     * @param galleryInfo 美术馆信息
      * @return 结果
      */
     @Override
@@ -81,9 +81,9 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     }
 
     /**
-     * 修改图书馆信息
+     * 修改美术馆信息
      *
-     * @param galleryInfo 图书馆信息
+     * @param galleryInfo 美术馆信息
      * @return 结果
      */
     @Override
@@ -94,9 +94,9 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     }
 
     /**
-     * 批量删除图书馆信息
+     * 批量删除美术馆信息
      *
-     * @param ids 需要删除的图书馆信息主键
+     * @param ids 需要删除的美术馆信息主键
      * @return 结果
      */
     @Override
@@ -105,9 +105,9 @@ public class GalleryInfoServiceImpl extends ServiceImpl<GalleryInfoMapper, Galle
     }
 
     /**
-     * 删除图书馆信息信息
+     * 删除美术馆信息信息
      *
-     * @param id 图书馆信息主键
+     * @param id 美术馆信息主键
      * @return 结果
      */
     @Override

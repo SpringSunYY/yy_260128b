@@ -12,7 +12,7 @@ import org.springframework.beans.BeanUtils;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.lz.manage.model.domain.NoticeInfo;
 /**
- * 咨询信息Query对象 tb_notice_info
+ * 资讯信息Query对象 tb_notice_info
  *
  * @author YY
  * @date 2026-02-10

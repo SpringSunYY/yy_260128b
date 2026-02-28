@@ -26,6 +26,11 @@ public class CollectionInfoQuery implements Serializable {
      */
     private Long id;
     /**
+     * 美术馆
+     */
+    private Long galleryId;
+
+    /**
      * 分类
      */
     private Long categoryId;

@@ -4,17 +4,37 @@
       <h2 class="home-title">{{ title }}</h2>
     </div>
 
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px" class="search-form">
+    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px"
+             class="search-form">
       <el-form-item label="分类" prop="categoryId">
-        <treeselect style="width: 200px" v-model="queryParams.categoryId" :options="categoryOptions" :normalizer="normalizer"
+        <treeselect style="width: 200px" v-model="queryParams.categoryId" :options="categoryOptions"
+                    :normalizer="normalizer"
                     placeholder="请选择分类"/>
+      </el-form-item>
+      <el-form-item label="美术馆" prop="galleryId">
+        <el-select
+          v-model="queryParams.galleryId"
+          filterable
+          remote
+          reserve-keyword
+          placeholder="请输入美术馆名称"
+          :remote-method="remoteGetGalleryList"
+          :loading="galleryLoading">
+          <el-option
+            v-for="item in galleryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="名称" prop="name">
         <el-input v-model="queryParams.name" placeholder="请输入名称" clearable @keyup.enter.native="handleSearch"/>
       </el-form-item>
       <el-form-item label="排序类型" prop="sortType">
         <el-select v-model="queryParams.sortType" placeholder="请选择排序类型" clearable>
-          <el-option v-for="dict in dict.type.collection_sort_type" :key="dict.value" :label="dict.label" :value="dict.value"/>
+          <el-option v-for="dict in dict.type.collection_sort_type" :key="dict.value" :label="dict.label"
+                     :value="dict.value"/>
         </el-select>
       </el-form-item>
       <el-form-item label="作者" prop="author">
@@ -33,9 +53,9 @@
       <el-row :gutter="20" ref="cardGrid">
         <el-col :xs="24" :sm="12" :md="8" :lg="6" v-for="item in collectionList" :key="item.id" class="mb20">
           <el-card :body-style="{ padding: '0px' }" shadow="hover" class="collection-card">
-              <div class="card-image-container">
-                <image-preview :src="item.imageSrc" :width="'100%'" :height="250"/>
-              </div>
+            <div class="card-image-container">
+              <image-preview :src="item.imageSrc" :width="'100%'" :height="250"/>
+            </div>
             <div class="card-content">
               <div class="card-header">
                 <span class="card-title">{{ item.name }}</span>
@@ -60,7 +80,9 @@
                 <div class="footer-right">
                   <div class="action-group">
                     <dict-tag :options="dict.type.collection_sort_type" :value="item.sortType"/>
-                    <el-button type="primary" size="mini" icon="el-icon-view" @click.stop="handleViewDetail(item.id)">详情</el-button>
+                    <el-button type="primary" size="mini" icon="el-icon-view" @click.stop="handleViewDetail(item.id)">
+                      详情
+                    </el-button>
                   </div>
                 </div>
               </div>
@@ -88,6 +110,7 @@ import ImagePreview from "@/components/ImagePreview/index.vue";
 import DictTag from "@/components/DictTag/index.vue";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import {listGalleryInfo} from "@/api/manage/galleryInfo";
 
 export default {
   name: "Index",
@@ -100,6 +123,14 @@ export default {
       loadingMore: false,
       collectionList: [],
       total: 0,
+      //美术馆
+      galleryList: [],
+      galleryQuery: {
+        pageNum: 1,
+        pageSize: 30,
+        status: '1',
+        name: null,
+      },
       // 分类标签树选项
       categoryOptions: [],
       // 查询参数
@@ -123,6 +154,7 @@ export default {
   },
   created() {
     this.getTreeselect();
+    this.getGalleryList();
     this.fetchData();
     window.addEventListener('scroll', this.handleScroll);
   },
@@ -130,6 +162,18 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
+    /** 查询美术馆信息 */
+    getGalleryList() {
+      this.galleryLoading = true;
+      listGalleryInfo(this.galleryQuery).then(response => {
+        this.galleryList = response.rows;
+        this.galleryLoading = false;
+      })
+    },
+    remoteGetGalleryList(query) {
+      this.galleryQuery.name = query;
+      this.getGalleryList();
+    },
     /** 查询分类标签下拉树结构 */
     getTreeselect() {
       listCategory().then(response => {
@@ -206,7 +250,7 @@ export default {
     handleViewDetail(id) {
       const route = this.$router.resolve({
         name: 'CollectionInfoDetail',
-        query: { id: id }
+        query: {id: id}
       });
       window.open(route.href, '_blank');
     }

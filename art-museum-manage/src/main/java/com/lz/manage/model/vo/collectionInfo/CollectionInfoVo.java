@@ -23,6 +23,11 @@ public class CollectionInfoVo implements Serializable {
      */
     private Long id;
 
+    /**
+     * 美术馆
+     */
+    private Long galleryId;
+    private String galleryName;
 
     /**
      * 分类

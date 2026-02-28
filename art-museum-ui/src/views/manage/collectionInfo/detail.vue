@@ -41,6 +41,14 @@
     <div class="content-section" v-if="!loading && detail.id">
       <!-- 基础信息 -->
       <div class="info-panel">
+        <div class="info-row" v-if="detail.galleryName">
+          <span class="label">美术馆</span>
+          <span class="value">{{ detail.galleryName }}</span>
+        </div>
+        <div class="info-row" v-if="detail.categoryName">
+          <span class="label">分类</span>
+          <span class="value">{{ detail.categoryName }}</span>
+        </div>
         <div class="info-row" v-if="detail.author">
           <span class="label">作者</span>
           <span class="value">{{ detail.author }}</span>
@@ -673,7 +681,7 @@ export default {
   max-width: 80%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 30px;
   padding: 30px 0;
   border-bottom: 1px solid #eee;

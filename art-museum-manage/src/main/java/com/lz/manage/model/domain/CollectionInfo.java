@@ -30,6 +30,15 @@ public class CollectionInfo implements Serializable {
     @Excel(name = "编号")
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
+    /**
+     * 美术馆
+     */
+    @Excel(name = "美术馆", type = Excel.Type.IMPORT)
+    private Long galleryId;
+    @Excel(name = "美术馆", type = Excel.Type.EXPORT)
+    @TableField(exist = false)
+    private String galleryName;
+
 
     /**
      * 分类

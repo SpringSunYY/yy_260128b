@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-// 查询咨询信息列表
+// 查询资讯信息列表
 export function listNoticeInfo(query) {
   return request({
     url: '/manage/noticeInfo/list',
@@ -9,7 +9,7 @@ export function listNoticeInfo(query) {
   })
 }
 
-// 查询咨询信息详细
+// 查询资讯信息详细
 export function getNoticeInfo(id) {
   return request({
     url: '/manage/noticeInfo/' + id,
@@ -17,7 +17,7 @@ export function getNoticeInfo(id) {
   })
 }
 
-//查询咨询信息详细
+//查询资讯信息详细
 export function getNoticeInfoDetail(id) {
   return request({
     url: '/manage/noticeInfo/detail/' + id,
@@ -25,7 +25,7 @@ export function getNoticeInfoDetail(id) {
   })
 }
 
-// 新增咨询信息
+// 新增资讯信息
 export function addNoticeInfo(data) {
   return request({
     url: '/manage/noticeInfo',
@@ -34,7 +34,7 @@ export function addNoticeInfo(data) {
   })
 }
 
-// 修改咨询信息
+// 修改资讯信息
 export function updateNoticeInfo(data) {
   return request({
     url: '/manage/noticeInfo',
@@ -43,7 +43,7 @@ export function updateNoticeInfo(data) {
   })
 }
 
-// 删除咨询信息
+// 删除资讯信息
 export function delNoticeInfo(id) {
   return request({
     url: '/manage/noticeInfo/' + id,

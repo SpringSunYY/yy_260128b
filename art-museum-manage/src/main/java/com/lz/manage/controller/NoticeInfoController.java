@@ -27,7 +27,7 @@ import com.lz.common.utils.poi.ExcelUtil;
 import com.lz.common.core.page.TableDataInfo;
 
 /**
- * 咨询信息Controller
+ * 资讯信息Controller
  *
  * @author YY
  * @date 2026-02-10
@@ -40,7 +40,7 @@ public class NoticeInfoController extends BaseController
     private INoticeInfoService noticeInfoService;
 
     /**
-     * 查询咨询信息列表
+     * 查询资讯信息列表
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:list')")
     @GetMapping("/list")
@@ -56,21 +56,21 @@ public class NoticeInfoController extends BaseController
     }
 
     /**
-     * 导出咨询信息列表
+     * 导出资讯信息列表
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:export')")
-    @Log(title = "咨询信息", businessType = BusinessType.EXPORT)
+    @Log(title = "资讯信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, NoticeInfoQuery noticeInfoQuery)
     {
         NoticeInfo noticeInfo = NoticeInfoQuery.queryToObj(noticeInfoQuery);
         List<NoticeInfo> list = noticeInfoService.selectNoticeInfoList(noticeInfo);
         ExcelUtil<NoticeInfo> util = new ExcelUtil<NoticeInfo>(NoticeInfo.class);
-        util.exportExcel(response, list, "咨询信息数据");
+        util.exportExcel(response, list, "资讯信息数据");
     }
 
     /**
-     * 获取咨询信息详细信息
+     * 获取资讯信息详细信息
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:query')")
     @GetMapping(value = "/{id}")
@@ -92,10 +92,10 @@ public class NoticeInfoController extends BaseController
     }
 
     /**
-     * 新增咨询信息
+     * 新增资讯信息
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:add')")
-    @Log(title = "咨询信息", businessType = BusinessType.INSERT)
+    @Log(title = "资讯信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody NoticeInfoInsert noticeInfoInsert)
     {
@@ -104,10 +104,10 @@ public class NoticeInfoController extends BaseController
     }
 
     /**
-     * 修改咨询信息
+     * 修改资讯信息
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:edit')")
-    @Log(title = "咨询信息", businessType = BusinessType.UPDATE)
+    @Log(title = "资讯信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody NoticeInfoEdit noticeInfoEdit)
     {
@@ -116,10 +116,10 @@ public class NoticeInfoController extends BaseController
     }
 
     /**
-     * 删除咨询信息
+     * 删除资讯信息
      */
     @PreAuthorize("@ss.hasPermi('manage:noticeInfo:remove')")
-    @Log(title = "咨询信息", businessType = BusinessType.DELETE)
+    @Log(title = "资讯信息", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
     {

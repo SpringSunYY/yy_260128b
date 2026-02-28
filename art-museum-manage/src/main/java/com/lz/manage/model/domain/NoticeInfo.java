@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * 咨询信息对象 tb_notice_info
+ * 资讯信息对象 tb_notice_info
  *
  * @author YY
  * @date 2026-02-10

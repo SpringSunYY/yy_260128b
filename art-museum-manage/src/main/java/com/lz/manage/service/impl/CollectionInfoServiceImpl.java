@@ -20,6 +20,7 @@ import com.lz.manage.model.vo.collectionInfo.CollectionInfoDetailVo;
 import com.lz.manage.model.vo.collectionInfo.CollectionInfoVo;
 import com.lz.manage.service.ICategoryService;
 import com.lz.manage.service.ICollectionInfoService;
+import com.lz.manage.service.IGalleryInfoService;
 import com.lz.system.service.ISysUserService;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +51,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
 
     @Resource
     private GoodsMapper goodsMapper;
+
+    @Resource
+    private IGalleryInfoService galleryInfoService;
 
     @Resource
     private CollectionMultimediaMapper collectionMultimediaMapper;
@@ -85,6 +89,10 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
             if (StringUtils.isNotNull(category)) {
                 info.setCategoryName(category.getName());
             }
+            GalleryInfo galleryInfo = galleryInfoService.selectGalleryInfoById(info.getGalleryId());
+            if (StringUtils.isNotNull(galleryInfo)) {
+                info.setGalleryName(galleryInfo.getName());
+            }
         }
         return collectionInfos;
     }
@@ -97,6 +105,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
      */
     @Override
     public int insertCollectionInfo(CollectionInfo collectionInfo) {
+        //查询美术馆是否存在
+        GalleryInfo galleryInfo = galleryInfoService.selectGalleryInfoById(collectionInfo.getGalleryId());
+        ThrowUtils.throwIf(StringUtils.isNull(galleryInfo), "美术馆不存在");
         //查询分类是否存在
         Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
         ThrowUtils.throwIf(StringUtils.isNull(category), "分类不存在");
@@ -114,6 +125,9 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
      */
     @Override
     public int updateCollectionInfo(CollectionInfo collectionInfo) {
+        //查询美术馆是否存在
+        GalleryInfo galleryInfo = galleryInfoService.selectGalleryInfoById(collectionInfo.getGalleryId());
+        ThrowUtils.throwIf(StringUtils.isNull(galleryInfo), "美术馆不存在");
         //查询分类是否存在
         Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
         ThrowUtils.throwIf(StringUtils.isNull(category), "分类不存在");
@@ -193,6 +207,11 @@ public class CollectionInfoServiceImpl extends ServiceImpl<CollectionInfoMapper,
         //如果不是正常的
         ThrowUtils.throwIf(!CollectionStatusEnum.COLLECTION_STATUS_1.getValue().equals(collectionInfo.getStatus()), "藏品信息当前不可见");
         CollectionInfoDetailVo collectionInfoDetailVo = CollectionInfoDetailVo.objToVo(collectionInfo);
+        //查询美术馆
+        GalleryInfo galleryInfo = galleryInfoService.selectGalleryInfoById(collectionInfo.getGalleryId());
+        if (StringUtils.isNotNull(galleryInfo)) {
+            collectionInfoDetailVo.setGalleryName(galleryInfo.getName());
+        }
         //查询分类
         Category category = categoryService.selectCategoryById(collectionInfo.getCategoryId());
         if (StringUtils.isNotNull(category)) {

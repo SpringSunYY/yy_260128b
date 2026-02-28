@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
- * 图书馆信息对象 tb_gallery_info
+ * 美术馆信息对象 tb_gallery_info
  *
  * @author YY
  * @date 2026-02-28

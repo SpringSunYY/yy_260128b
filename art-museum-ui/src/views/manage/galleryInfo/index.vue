@@ -187,7 +187,7 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改图书馆信息对话框 -->
+    <!-- 添加或修改美术馆信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="name">
@@ -281,7 +281,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 图书馆信息表格数据
+      // 美术馆信息表格数据
       galleryInfoList: [],
       // 弹出层标题
       title: "",
@@ -336,7 +336,7 @@ export default {
     this.getList();
   },
   methods: {
-    /** 查询图书馆信息列表 */
+    /** 查询美术馆信息列表 */
     getList() {
       this.loading = true;
       listGalleryInfo(this.queryParams).then(response => {
@@ -390,7 +390,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加图书馆信息";
+      this.title = "添加美术馆信息";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -399,7 +399,7 @@ export default {
       getGalleryInfo(id).then(response => {
         this.form = response.data;
         this.open = true;
-        this.title = "修改图书馆信息";
+        this.title = "修改美术馆信息";
       });
     },
     /** 提交按钮 */
@@ -425,7 +425,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除图书馆信息编号为"' + ids + '"的数据项？').then(function () {
+      this.$modal.confirm('是否确认删除美术馆信息编号为"' + ids + '"的数据项？').then(function () {
         return delGalleryInfo(ids);
       }).then(() => {
         this.getList();

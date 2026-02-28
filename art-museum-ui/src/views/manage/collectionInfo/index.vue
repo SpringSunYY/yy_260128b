@@ -9,8 +9,26 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
+      <el-form-item label="美术馆" prop="galleryId">
+        <el-select
+          v-model="queryParams.galleryId"
+          filterable
+          remote
+          reserve-keyword
+          placeholder="请输入美术馆名称"
+          :remote-method="remoteGetGalleryList"
+          :loading="galleryLoading">
+          <el-option
+            v-for="item in galleryList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </el-form-item>
       <el-form-item label="分类" prop="categoryId">
-        <treeselect style="width: 200px" v-model="queryParams.categoryId" :options="categoryOptions" :normalizer="normalizer"
+        <treeselect style="width: 200px" v-model="queryParams.categoryId" :options="categoryOptions"
+                    :normalizer="normalizer"
                     placeholder="请选择分类"/>
       </el-form-item>
       <el-form-item label="名称" prop="name">
@@ -127,50 +145,53 @@
     <el-table v-loading="loading" :data="collectionInfoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
-      <el-table-column label="分类" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+      <el-table-column label="美术馆" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible"
+                       prop="galleryName"/>
+      <el-table-column label="分类" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
                        prop="categoryName"/>
-      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="name"/>
-      <el-table-column label="相关图片" align="center" v-if="columns[3].visible" prop="imageSrc" width="100">
+      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible" prop="name"/>
+      <el-table-column label="相关图片" align="center" v-if="columns[4].visible" prop="imageSrc" width="100">
         <template slot-scope="scope">
           <image-preview :src="scope.row.imageSrc" :width="50" :height="50"/>
         </template>
       </el-table-column>
-      <el-table-column label="状态" align="center" v-if="columns[4].visible" prop="status">
+      <el-table-column label="状态" align="center" v-if="columns[5].visible" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.collection_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-      <el-table-column label="排序类型" align="center" v-if="columns[5].visible" prop="sortType">
+      <el-table-column label="排序类型" align="center" v-if="columns[6].visible" prop="sortType">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.collection_sort_type" :value="scope.row.sortType"/>
         </template>
       </el-table-column>
-      <el-table-column label="作者" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
+      <el-table-column label="作者" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible"
                        prop="author"/>
-      <el-table-column label="年代" :show-overflow-tooltip="true" align="center" v-if="columns[7].visible" prop="era"/>
-      <el-table-column label="材质" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible"
+      <el-table-column label="年代" :show-overflow-tooltip="true" align="center" v-if="columns[8].visible" prop="era"/>
+      <el-table-column label="材质" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
                        prop="material"/>
-      <el-table-column label="尺寸" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible" prop="size"/>
-      <el-table-column label="简介" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
+      <el-table-column label="尺寸" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
+                       prop="size"/>
+      <el-table-column label="简介" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
                        prop="introduction"/>
-      <el-table-column label="详细解读" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
+      <el-table-column label="详细解读" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
                        prop="detailedInterpretation"/>
-      <el-table-column label="历史背景" :show-overflow-tooltip="true" align="center" v-if="columns[12].visible"
+      <el-table-column label="历史背景" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
                        prop="historicalBackground"/>
-      <el-table-column label="收藏数" :show-overflow-tooltip="true" align="center" v-if="columns[13].visible"
+      <el-table-column label="收藏数" :show-overflow-tooltip="true" align="center" v-if="columns[14].visible"
                        prop="collectNumber"/>
-      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[14].visible"
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[15].visible"
                        prop="remark"/>
-      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[15].visible"
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[16].visible"
                        prop="userName"/>
-      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[16].visible"
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[17].visible"
                        prop="updateBy"/>
-      <el-table-column label="创建时间" align="center" v-if="columns[17].visible" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" v-if="columns[18].visible" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="更新时间" align="center" v-if="columns[18].visible" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" v-if="columns[19].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
@@ -273,9 +294,28 @@
               <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
             </el-form-item>
           </el-col>
-          <el-col :span="24">
+          <el-col :span="12">
             <el-form-item label="相关图片" prop="imageSrc">
               <image-upload v-model="form.imageSrc"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="美术馆" prop="galleryId">
+              <el-select
+                v-model="form.galleryId"
+                filterable
+                remote
+                reserve-keyword
+                placeholder="请输入美术馆名称"
+                :remote-method="remoteGetGalleryList"
+                :loading="galleryLoading">
+                <el-option
+                  v-for="item in galleryList"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -314,6 +354,7 @@ import {
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import {listCategory} from "@/api/manage/category";
+import {listGalleryInfo} from "@/api/manage/galleryInfo";
 
 export default {
   name: "CollectionInfo",
@@ -321,29 +362,38 @@ export default {
   dicts: ['collection_sort_type', 'collection_status'],
   data() {
     return {
+      //美术馆
+      galleryList: [],
+      galleryQuery: {
+        pageNum: 1,
+        pageSize: 30,
+        name: null,
+      },
+      galleryLoading: false,
       // 分类标签树选项
       categoryOptions: [],
       //表格展示列
       columns: [
         {key: 0, label: '编号', visible: true},
-        {key: 1, label: '分类', visible: true},
-        {key: 2, label: '名称', visible: true},
-        {key: 3, label: '相关图片', visible: true},
-        {key: 4, label: '状态', visible: true},
-        {key: 5, label: '排序类型', visible: true},
-        {key: 6, label: '作者', visible: true},
-        {key: 7, label: '年代', visible: true},
-        {key: 8, label: '材质', visible: true},
-        {key: 9, label: '尺寸', visible: true},
-        {key: 10, label: '简介', visible: false},
-        {key: 11, label: '详细解读', visible: false},
-        {key: 12, label: '历史背景', visible: false},
-        {key: 13, label: '收藏数', visible: true},
-        {key: 14, label: '备注', visible: false},
-        {key: 15, label: '创建人', visible: true},
-        {key: 16, label: '更新人', visible: false},
-        {key: 17, label: '创建时间', visible: true},
-        {key: 18, label: '更新时间', visible: false},
+        {key: 1, label: '美术馆', visible: true},
+        {key: 2, label: '分类', visible: true},
+        {key: 3, label: '名称', visible: true},
+        {key: 4, label: '相关图片', visible: true},
+        {key: 5, label: '状态', visible: true},
+        {key: 6, label: '排序类型', visible: true},
+        {key: 7, label: '作者', visible: true},
+        {key: 8, label: '年代', visible: true},
+        {key: 9, label: '材质', visible: true},
+        {key: 10, label: '尺寸', visible: true},
+        {key: 11, label: '简介', visible: false},
+        {key: 12, label: '详细解读', visible: true},
+        {key: 13, label: '历史背景', visible: true},
+        {key: 14, label: '收藏数', visible: true},
+        {key: 15, label: '备注', visible: false},
+        {key: 16, label: '创建人', visible: true},
+        {key: 17, label: '更新人', visible: false},
+        {key: 18, label: '创建时间', visible: true},
+        {key: 19, label: '更新时间', visible: false},
       ],
       // 遮罩层
       loading: true,
@@ -410,8 +460,21 @@ export default {
   created() {
     this.getList();
     this.getTreeselect();
+    this.getGalleryList();
   },
   methods: {
+    /** 查询美术馆信息 */
+    getGalleryList() {
+      this.galleryLoading = true;
+      listGalleryInfo(this.galleryQuery).then(response => {
+        this.galleryList = response.rows;
+        this.galleryLoading = false;
+      })
+    },
+    remoteGetGalleryList(query) {
+      this.galleryQuery.name = query;
+      this.getGalleryList();
+    },
     /** 查询分类标签下拉树结构 */
     getTreeselect() {
       listCategory().then(response => {
@@ -454,6 +517,7 @@ export default {
     // 表单重置
     reset() {
       this.form = {
+        galleryId: null,
         id: null,
         categoryId: null,
         name: null,

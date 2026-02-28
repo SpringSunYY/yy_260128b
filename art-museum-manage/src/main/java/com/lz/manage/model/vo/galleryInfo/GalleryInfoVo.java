@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 图书馆信息Vo对象 tb_gallery_info
+ * 美术馆信息Vo对象 tb_gallery_info
  *
  * @author YY
  * @date 2026-02-28

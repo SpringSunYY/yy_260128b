@@ -27,7 +27,7 @@ import com.lz.common.utils.poi.ExcelUtil;
 import com.lz.common.core.page.TableDataInfo;
 
 /**
- * 图书馆信息Controller
+ * 美术馆信息Controller
  *
  * @author YY
  * @date 2026-02-28
@@ -40,7 +40,7 @@ public class GalleryInfoController extends BaseController
     private IGalleryInfoService galleryInfoService;
 
     /**
-     * 查询图书馆信息列表
+     * 查询美术馆信息列表
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:list')")
     @GetMapping("/list")
@@ -56,21 +56,21 @@ public class GalleryInfoController extends BaseController
     }
 
     /**
-     * 导出图书馆信息列表
+     * 导出美术馆信息列表
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:export')")
-    @Log(title = "图书馆信息", businessType = BusinessType.EXPORT)
+    @Log(title = "美术馆信息", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, GalleryInfoQuery galleryInfoQuery)
     {
         GalleryInfo galleryInfo = GalleryInfoQuery.queryToObj(galleryInfoQuery);
         List<GalleryInfo> list = galleryInfoService.selectGalleryInfoList(galleryInfo);
         ExcelUtil<GalleryInfo> util = new ExcelUtil<GalleryInfo>(GalleryInfo.class);
-        util.exportExcel(response, list, "图书馆信息数据");
+        util.exportExcel(response, list, "美术馆信息数据");
     }
 
     /**
-     * 获取图书馆信息详细信息
+     * 获取美术馆信息详细信息
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:query')")
     @GetMapping(value = "/{id}")
@@ -81,10 +81,10 @@ public class GalleryInfoController extends BaseController
     }
 
     /**
-     * 新增图书馆信息
+     * 新增美术馆信息
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:add')")
-    @Log(title = "图书馆信息", businessType = BusinessType.INSERT)
+    @Log(title = "美术馆信息", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody GalleryInfoInsert galleryInfoInsert)
     {
@@ -93,10 +93,10 @@ public class GalleryInfoController extends BaseController
     }
 
     /**
-     * 修改图书馆信息
+     * 修改美术馆信息
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:edit')")
-    @Log(title = "图书馆信息", businessType = BusinessType.UPDATE)
+    @Log(title = "美术馆信息", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody GalleryInfoEdit galleryInfoEdit)
     {
@@ -105,10 +105,10 @@ public class GalleryInfoController extends BaseController
     }
 
     /**
-     * 删除图书馆信息
+     * 删除美术馆信息
      */
     @PreAuthorize("@ss.hasPermi('manage:galleryInfo:remove')")
-    @Log(title = "图书馆信息", businessType = BusinessType.DELETE)
+    @Log(title = "美术馆信息", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
     {

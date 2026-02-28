@@ -185,7 +185,7 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改咨询信息对话框 -->
+    <!-- 添加或修改资讯信息对话框 -->
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="标题" prop="title">
@@ -374,7 +374,7 @@ export default {
       showSearch: true,
       // 总条数
       total: 0,
-      // 咨询信息表格数据
+      // 资讯信息表格数据
       noticeInfoList: [],
       // 弹出层标题
       title: "",
@@ -438,7 +438,7 @@ export default {
         this.collectionInfoLoading = false;
       });
     },
-    /** 查询咨询信息列表 */
+    /** 查询资讯信息列表 */
     getList() {
       this.loading = true;
       listNoticeInfo(this.queryParams).then(response => {
@@ -490,7 +490,7 @@ export default {
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加咨询信息";
+      this.title = "添加资讯信息";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -500,7 +500,7 @@ export default {
         this.form = response.data;
         this.form.collectionIds = this.form.collectionIds.split(",");
         this.open = true;
-        this.title = "修改咨询信息";
+        this.title = "修改资讯信息";
       });
     },
     /** 提交按钮 */
@@ -527,7 +527,7 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除咨询信息编号为"' + ids + '"的数据项？').then(function () {
+      this.$modal.confirm('是否确认删除资讯信息编号为"' + ids + '"的数据项？').then(function () {
         return delNoticeInfo(ids);
       }).then(() => {
         this.getList();

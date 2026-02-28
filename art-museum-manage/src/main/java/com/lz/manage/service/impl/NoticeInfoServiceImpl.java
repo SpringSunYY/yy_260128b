@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 咨询信息Service业务层处理
+ * 资讯信息Service业务层处理
  *
  * @author YY
  * @date 2026-02-10
@@ -49,10 +49,10 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     //region mybatis代码
 
     /**
-     * 查询咨询信息
+     * 查询资讯信息
      *
-     * @param id 咨询信息主键
-     * @return 咨询信息
+     * @param id 资讯信息主键
+     * @return 资讯信息
      */
     @Override
     public NoticeInfo selectNoticeInfoById(Long id) {
@@ -89,10 +89,10 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     }
 
     /**
-     * 查询咨询信息列表
+     * 查询资讯信息列表
      *
-     * @param noticeInfo 咨询信息
-     * @return 咨询信息
+     * @param noticeInfo 资讯信息
+     * @return 资讯信息
      */
     @Override
     public List<NoticeInfo> selectNoticeInfoList(NoticeInfo noticeInfo) {
@@ -104,9 +104,9 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     }
 
     /**
-     * 新增咨询信息
+     * 新增资讯信息
      *
-     * @param noticeInfo 咨询信息
+     * @param noticeInfo 资讯信息
      * @return 结果
      */
     @Override
@@ -120,9 +120,9 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     }
 
     /**
-     * 修改咨询信息
+     * 修改资讯信息
      *
-     * @param noticeInfo 咨询信息
+     * @param noticeInfo 资讯信息
      * @return 结果
      */
     @Override
@@ -144,9 +144,9 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     }
 
     /**
-     * 批量删除咨询信息
+     * 批量删除资讯信息
      *
-     * @param ids 需要删除的咨询信息主键
+     * @param ids 需要删除的资讯信息主键
      * @return 结果
      */
     @Override
@@ -155,9 +155,9 @@ public class NoticeInfoServiceImpl extends ServiceImpl<NoticeInfoMapper, NoticeI
     }
 
     /**
-     * 删除咨询信息信息
+     * 删除资讯信息信息
      *
-     * @param id 咨询信息主键
+     * @param id 资讯信息主键
      * @return 结果
      */
     @Override
