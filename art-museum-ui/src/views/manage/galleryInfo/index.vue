@@ -51,14 +51,14 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="更新人" prop="updateBy">
-        <el-input
-          v-model="queryParams.updateBy"
-          placeholder="请输入更新人"
-          clearable
-          @keyup.enter.native="handleQuery"
-        />
-      </el-form-item>
+      <!--      <el-form-item label="更新人" prop="updateBy">-->
+      <!--        <el-input-->
+      <!--          v-model="queryParams.updateBy"-->
+      <!--          placeholder="请输入更新人"-->
+      <!--          clearable-->
+      <!--          @keyup.enter.native="handleQuery"-->
+      <!--        />-->
+      <!--      </el-form-item>-->
       <el-form-item>
         <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
         <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
@@ -74,7 +74,8 @@
           size="mini"
           @click="handleAdd"
           v-hasPermi="['manage:galleryInfo:add']"
-        >新增</el-button>
+        >新增
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -85,7 +86,8 @@
           :disabled="single"
           @click="handleUpdate"
           v-hasPermi="['manage:galleryInfo:edit']"
-        >修改</el-button>
+        >修改
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -96,7 +98,8 @@
           :disabled="multiple"
           @click="handleDelete"
           v-hasPermi="['manage:galleryInfo:remove']"
-        >删除</el-button>
+        >删除
+        </el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -106,48 +109,55 @@
           size="mini"
           @click="handleExport"
           v-hasPermi="['manage:galleryInfo:export']"
-        >导出</el-button>
+        >导出
+        </el-button>
       </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="galleryInfoList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id" />
-        <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible" prop="name" />
-        <el-table-column label="省份" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible" prop="province" />
-        <el-table-column label="城市" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible" prop="city" />
-        <el-table-column label="详细地址" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible" prop="address" />
-        <el-table-column label="开放时间" align="center" v-if="columns[5].visible" prop="openingTime" width="180">
+      <el-table-column type="selection" width="55" align="center"/>
+      <el-table-column label="编号" align="center" v-if="columns[0].visible" prop="id"/>
+      <el-table-column label="名称" :show-overflow-tooltip="true" align="center" v-if="columns[1].visible" prop="name"/>
+      <el-table-column label="省份" :show-overflow-tooltip="true" align="center" v-if="columns[2].visible"
+                       prop="province"/>
+      <el-table-column label="城市" :show-overflow-tooltip="true" align="center" v-if="columns[3].visible" prop="city"/>
+      <el-table-column label="详细地址" :show-overflow-tooltip="true" align="center" v-if="columns[4].visible"
+                       prop="address"/>
+      <el-table-column label="开放时间" align="center" v-if="columns[5].visible" prop="openingTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.openingTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="简介" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible" prop="description" />
-        <el-table-column label="封面" align="center" v-if="columns[7].visible" prop="coverUrl" width="100">
+      <el-table-column label="简介" :show-overflow-tooltip="true" align="center" v-if="columns[6].visible"
+                       prop="description"/>
+      <el-table-column label="封面" align="center" v-if="columns[7].visible" prop="coverUrl" width="100">
         <template slot-scope="scope">
           <image-preview :src="scope.row.coverUrl" :width="50" :height="50"/>
         </template>
       </el-table-column>
-        <el-table-column label="状态" align="center" v-if="columns[8].visible" prop="status">
+      <el-table-column label="状态" align="center" v-if="columns[8].visible" prop="status">
         <template slot-scope="scope">
           <dict-tag :options="dict.type.gallery_status" :value="scope.row.status"/>
         </template>
       </el-table-column>
-        <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible" prop="remark" />
-        <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible" prop="userId" />
-        <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible" prop="updateBy" />
-        <el-table-column label="创建时间" align="center" v-if="columns[12].visible" prop="createTime" width="180">
+      <el-table-column label="备注" :show-overflow-tooltip="true" align="center" v-if="columns[9].visible"
+                       prop="remark"/>
+      <el-table-column label="创建人" :show-overflow-tooltip="true" align="center" v-if="columns[10].visible"
+                       prop="userName"/>
+      <el-table-column label="更新人" :show-overflow-tooltip="true" align="center" v-if="columns[11].visible"
+                       prop="updateBy"/>
+      <el-table-column label="创建时间" align="center" v-if="columns[12].visible" prop="createTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="更新时间" align="center" v-if="columns[13].visible" prop="updateTime" width="180">
+      <el-table-column label="更新时间" align="center" v-if="columns[13].visible" prop="updateTime" width="180">
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.updateTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-        <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -155,14 +165,16 @@
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:galleryInfo:edit']"
-          >修改</el-button>
+          >修改
+          </el-button>
           <el-button
             size="mini"
             type="text"
             icon="el-icon-delete"
             @click="handleDelete(scope.row)"
             v-hasPermi="['manage:galleryInfo:remove']"
-          >删除</el-button>
+          >删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -179,23 +191,23 @@
     <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入名称" />
+          <el-input v-model="form.name" placeholder="请输入名称"/>
         </el-form-item>
         <el-form-item label="省份" prop="province">
-          <el-input v-model="form.province" placeholder="请输入省份" />
+          <el-input v-model="form.province" placeholder="请输入省份"/>
         </el-form-item>
         <el-form-item label="城市" prop="city">
-          <el-input v-model="form.city" placeholder="请输入城市" />
+          <el-input v-model="form.city" placeholder="请输入城市"/>
         </el-form-item>
         <el-form-item label="详细地址" prop="address">
-          <el-input v-model="form.address" placeholder="请输入详细地址" />
+          <el-input v-model="form.address" placeholder="请输入详细地址"/>
         </el-form-item>
         <el-form-item label="开放时间" prop="openingTime">
           <el-date-picker clearable
-            v-model="form.openingTime"
-            type="date"
-            value-format="yyyy-MM-dd"
-            placeholder="请选择开放时间">
+                          v-model="form.openingTime"
+                          type="date"
+                          value-format="yyyy-MM-dd"
+                          placeholder="请选择开放时间">
           </el-date-picker>
         </el-form-item>
         <el-form-item label="简介">
@@ -210,11 +222,12 @@
               v-for="dict in dict.type.gallery_status"
               :key="dict.value"
               :label="dict.value"
-            >{{dict.label}}</el-radio>
+            >{{ dict.label }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"/>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -226,7 +239,13 @@
 </template>
 
 <script>
-import { listGalleryInfo, getGalleryInfo, delGalleryInfo, addGalleryInfo, updateGalleryInfo } from "@/api/manage/galleryInfo";
+import {
+  addGalleryInfo,
+  delGalleryInfo,
+  getGalleryInfo,
+  listGalleryInfo,
+  updateGalleryInfo
+} from "@/api/manage/galleryInfo";
 
 export default {
   name: "GalleryInfo",
@@ -235,21 +254,21 @@ export default {
     return {
       //表格展示列
       columns: [
-        { key: 0, label: '编号', visible: true },
-          { key: 1, label: '名称', visible: true },
-          { key: 2, label: '省份', visible: true },
-          { key: 3, label: '城市', visible: true },
-          { key: 4, label: '详细地址', visible: true },
-          { key: 5, label: '开放时间', visible: true },
-          { key: 6, label: '简介', visible: true },
-          { key: 7, label: '封面', visible: true },
-          { key: 8, label: '状态', visible: true },
-          { key: 9, label: '备注', visible: true },
-          { key: 10, label: '创建人', visible: true },
-          { key: 11, label: '更新人', visible: true },
-          { key: 12, label: '创建时间', visible: true },
-          { key: 13, label: '更新时间', visible: true },
-        ],
+        {key: 0, label: '编号', visible: true},
+        {key: 1, label: '名称', visible: true},
+        {key: 2, label: '省份', visible: true},
+        {key: 3, label: '城市', visible: true},
+        {key: 4, label: '详细地址', visible: true},
+        {key: 5, label: '开放时间', visible: true},
+        {key: 6, label: '简介', visible: false},
+        {key: 7, label: '封面', visible: true},
+        {key: 8, label: '状态', visible: true},
+        {key: 9, label: '备注', visible: false},
+        {key: 10, label: '创建人', visible: true},
+        {key: 11, label: '更新人', visible: false},
+        {key: 12, label: '创建时间', visible: true},
+        {key: 13, label: '更新时间', visible: false},
+      ],
       // 遮罩层
       loading: true,
       // 选中数组
@@ -287,28 +306,28 @@ export default {
       // 表单校验
       rules: {
         name: [
-          { required: true, message: "名称不能为空", trigger: "blur" }
+          {required: true, message: "名称不能为空", trigger: "blur"}
         ],
         province: [
-          { required: true, message: "省份不能为空", trigger: "blur" }
+          {required: true, message: "省份不能为空", trigger: "blur"}
         ],
         city: [
-          { required: true, message: "城市不能为空", trigger: "blur" }
+          {required: true, message: "城市不能为空", trigger: "blur"}
         ],
         description: [
-          { required: true, message: "简介不能为空", trigger: "blur" }
+          {required: true, message: "简介不能为空", trigger: "blur"}
         ],
         coverUrl: [
-          { required: true, message: "封面不能为空", trigger: "blur" }
+          {required: true, message: "封面不能为空", trigger: "blur"}
         ],
         status: [
-          { required: true, message: "状态不能为空", trigger: "change" }
+          {required: true, message: "状态不能为空", trigger: "change"}
         ],
         userId: [
-          { required: true, message: "创建人不能为空", trigger: "blur" }
+          {required: true, message: "创建人不能为空", trigger: "blur"}
         ],
         createTime: [
-          { required: true, message: "创建时间不能为空", trigger: "blur" }
+          {required: true, message: "创建时间不能为空", trigger: "blur"}
         ],
       }
     };
@@ -364,7 +383,7 @@ export default {
     // 多选框选中数据
     handleSelectionChange(selection) {
       this.ids = selection.map(item => item.id)
-      this.single = selection.length!==1
+      this.single = selection.length !== 1
       this.multiple = !selection.length
     },
     /** 新增按钮操作 */
@@ -406,12 +425,13 @@ export default {
     /** 删除按钮操作 */
     handleDelete(row) {
       const ids = row.id || this.ids;
-      this.$modal.confirm('是否确认删除图书馆信息编号为"' + ids + '"的数据项？').then(function() {
+      this.$modal.confirm('是否确认删除图书馆信息编号为"' + ids + '"的数据项？').then(function () {
         return delGalleryInfo(ids);
       }).then(() => {
         this.getList();
         this.$modal.msgSuccess("删除成功");
-      }).catch(() => {});
+      }).catch(() => {
+      });
     },
     /** 导出按钮操作 */
     handleExport() {
