@@ -374,7 +374,7 @@ export default {
       categoryOptions: [],
       //表格展示列
       columns: [
-        {key: 0, label: '编号', visible: true},
+        {key: 0, label: '编号', visible: false},
         {key: 1, label: '美术馆', visible: true},
         {key: 2, label: '分类', visible: true},
         {key: 3, label: '名称', visible: true},
@@ -433,6 +433,12 @@ export default {
       exportUrl: 'manage/collectionInfo/export',
       // 表单校验
       rules: {
+        categoryId: [
+          {required: true, message: "分类不能为空", trigger: "blur"}
+        ],
+        galleryId: [
+          {required: true, message: "美术馆不能为空", trigger: "change"}
+        ],
         name: [
           {required: true, message: "名称不能为空", trigger: "blur"}
         ],

@@ -81,7 +81,7 @@
     <insert id="insertCollectionInfo" parameterType="CollectionInfo" useGeneratedKeys="true" keyProperty="id">
         insert into tb_collection_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="galleryId != null">gallery_id</if>
+            <if test="galleryId != null">gallery_id,</if>
             <if test="categoryId != null">category_id,</if>
             <if test="name != null and name != ''">name,</if>
             <if test="imageSrc != null and imageSrc != ''">image_src,</if>
